@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace XaocSirck_Core.Engine;
 
 // Json Model Classes
-internal class Root { }
+public class Root { }
 
 [JsonSerializable(typeof(Root))]
 public partial class AppJsonContext : JsonSerializerContext { }
