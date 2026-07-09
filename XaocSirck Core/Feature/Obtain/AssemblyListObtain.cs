@@ -1,13 +1,15 @@
-﻿using Gee.External.Capstone;
-using Gee.External.Capstone.Arm;
-using Gee.External.Capstone.Arm64;
-using Gee.External.Capstone.X86;
-using PeNet;
-using PeNet.Header.Pe;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+
+using PeNet;
+using PeNet.Header.Pe;
+using Gee.External.Capstone;
+using Gee.External.Capstone.Arm;
+using Gee.External.Capstone.Arm64;
+using Gee.External.Capstone.X86;
+
 using XaocSirck_Core.Interface.Feature;
 
 namespace XaocSirck_Core.Feature.Obtain;
@@ -44,7 +46,7 @@ internal sealed unsafe class AssemblyListObtain : IFeatureObtain
         }
     }
 
-    public nint GetResult()
+    public IntPtr GetResult()
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(AssemblyListObtain));
         return _resultPtr;
@@ -168,7 +170,7 @@ internal sealed unsafe class AssemblyListObtain : IFeatureObtain
         }
     }
 
-    public void Set(object inputData)
+    public void Set(Object inputData)
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(AssemblyListObtain));
         throw new NotImplementedException();
