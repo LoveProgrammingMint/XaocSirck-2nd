@@ -46,3 +46,6 @@ __screenshots__/
 # Vite
 *.timestamp-*-*.mjs
 /XaocSirck Cloud/XaocSirck Cloud Website/.vscode
+
+#Rust
+target/

@@ -1,0 +1,3 @@
+[workspace]
+members = ["D:\\IceZero\\Projects\\XaocSirck 2nd\\XaocSirck Cloud\\XaocSirck Cloud Service\\*"]
+resolver = "2"
