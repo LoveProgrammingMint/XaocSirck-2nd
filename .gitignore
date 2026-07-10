@@ -1,6 +1,7 @@
-﻿/XaocSirck Online Service/x64/Debug
+﻿/XaocSirck Online Service/x64/
 /.vs
 /XaocSirck Core/obj
-/XaocSirck Inference Service/x64/Debug
-/x64/Debug
-/XaocSirck Core/bin/Debug/net10.0-windows10.0.26100.0
+/XaocSirck Inference Service/x64/
+/x64/
+/XaocSirck Core/bin/
+/.vscode
