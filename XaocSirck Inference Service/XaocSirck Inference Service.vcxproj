@@ -163,10 +163,10 @@
     <ClCompile Include="SessionManagement.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Algorithm.h" />
-    <ClInclude Include="Base.h" />
-    <ClInclude Include="SessionInference.h" />
-    <ClInclude Include="SessionManagement.h" />
+    <ClInclude Include="Algorithm.hpp" />
+    <ClInclude Include="Base.hpp" />
+    <ClInclude Include="SessionInference.hpp" />
+    <ClInclude Include="SessionManagement.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
