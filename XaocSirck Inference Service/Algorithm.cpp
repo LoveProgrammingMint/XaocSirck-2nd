@@ -1,4 +1,4 @@
-#include "Algorithm.h"
+#include "Algorithm.hpp"
 #include <algorithm>
 #include <cmath>
 

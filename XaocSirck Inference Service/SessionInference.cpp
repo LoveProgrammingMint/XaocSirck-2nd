@@ -1,4 +1,4 @@
-#include "SessionInference.h"
+#include "SessionInference.hpp"
 #include <cwchar>
 #include <stdexcept>
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "Base.h"
+#include "Base.hpp"
 #include <onnxruntime/onnxruntime_c_api.h>
 #include <onnxruntime/onnxruntime_cxx_api.h>
 #include <onnxruntime/dml_provider_factory.h>
