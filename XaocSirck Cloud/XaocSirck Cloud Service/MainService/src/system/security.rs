@@ -1,8 +1,9 @@
 use axum::{
-    extract::{Query, State},
+    extract::{ConnectInfo, Query, State},
     http::StatusCode,
     Json,
 };
+use std::net::SocketAddr;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Row};
@@ -49,10 +50,21 @@ pub async fn list_blacklist(
     Ok(Json(rows))
 }
 
+fn is_protected_ip(ip: &str) -> bool {
+    ip.parse::<std::net::IpAddr>()
+        .map(|addr| addr.is_loopback() || addr.is_unspecified() || addr.is_multicast())
+        .unwrap_or(false)
+}
+
 pub async fn add_blacklist(
     State(state): State<Arc<SystemState>>,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     Json(body): Json<BlacklistCreate>,
 ) -> Result<StatusCode, StatusCode> {
+    let self_ip = addr.ip().to_string();
+    if body.ip == self_ip || is_protected_ip(&body.ip) {
+        return Err(StatusCode::FORBIDDEN);
+    }
     sqlx::query(
         "INSERT INTO ip_blacklist (ip, reason) VALUES ($1::INET, $2)
          ON CONFLICT (ip) DO UPDATE SET reason = EXCLUDED.reason"
@@ -80,10 +92,12 @@ pub async fn remove_blacklist(
 
 pub async fn ip_stats(
     State(state): State<Arc<SystemState>>,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     Query(q): Query<IPQuery>,
 ) -> Result<Json<Vec<IPRecord>>, StatusCode> {
     let limit = q.limit.unwrap_or(50);
     let offset = q.offset.unwrap_or(0);
+    let self_ip = addr.ip().to_string();
 
     let rows = sqlx::query(
         "SELECT ip::TEXT as ip, COUNT(*) as requests, MAX(time) as last_access
@@ -98,24 +112,21 @@ pub async fn ip_stats(
     .await
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    let mut records = Vec::with_capacity(rows.len());
-    for row in rows {
-        let ip: String = row.get("ip");
-        let blocked: Option<(String,)> = sqlx::query_as(
-            "SELECT reason FROM ip_blacklist WHERE ip = $1::INET"
-        )
-        .bind(&ip)
-        .fetch_optional(&state.pool)
-        .await
-        .unwrap_or(None);
-
-        records.push(IPRecord {
-            status: if blocked.is_some() { "blocked".to_string() } else { "normal".to_string() },
-            ip,
-            requests: row.get("requests"),
-            last_access: row.get("last_access"),
-        });
-    }
+    let records: Vec<IPRecord> = rows
+        .into_iter()
+        .filter_map(|row| {
+            let ip: String = row.get("ip");
+            if ip == self_ip {
+                return None;
+            }
+            Some(IPRecord {
+                status: "normal".to_string(),
+                ip,
+                requests: row.get("requests"),
+                last_access: row.get("last_access"),
+            })
+        })
+        .collect();
 
     Ok(Json(records))
 }
