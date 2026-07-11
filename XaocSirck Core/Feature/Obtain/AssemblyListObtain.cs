@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -21,7 +21,7 @@ internal sealed unsafe class AssemblyListObtain : IFeatureObtain
     private readonly UInt32 _maxDisassembleBytes = 256 * 1024;
     private readonly UInt32 _imageScnMemExecute = 0x20000000;
     private IntPtr _resultPtr = IntPtr.Zero;
-    private String _inputData = String.Empty;
+    private SharePool? _sharePool;
     private Boolean _disposed;
     private static readonly BpeEncoder _bpe = new();
 
@@ -40,7 +40,7 @@ internal sealed unsafe class AssemblyListObtain : IFeatureObtain
         if (!_disposed)
         {
             Clear();
-            _inputData = String.Empty;
+            _sharePool = null;
             _disposed = true;
             GC.SuppressFinalize(this);
         }
@@ -55,9 +55,8 @@ internal sealed unsafe class AssemblyListObtain : IFeatureObtain
     public void Obtain()
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(AssemblyListObtain));
-        PeFile pe = new(_inputData);
-        UInt16 machineType = (UInt16)(pe.ImageNtHeaders?.FileHeader.Machine ?? 0);
-        ImageSectionHeader[]? sections = pe.ImageSectionHeaders;
+        UInt16 machineType = (UInt16)(_sharePool?.Pe?.ImageNtHeaders?.FileHeader.Machine ?? 0);
+        ImageSectionHeader[]? sections = _sharePool?.Pe?.ImageSectionHeaders;
         if (sections == null) return;
 
         ImageSectionHeader? execSection = null;
@@ -70,7 +69,7 @@ internal sealed unsafe class AssemblyListObtain : IFeatureObtain
                 maxRawSize = s.SizeOfRawData;
             }
         }
-        if (execSection == null || pe.ImageNtHeaders?.OptionalHeader.ImageBase == null) return;
+        if (execSection == null || _sharePool?.Pe?.ImageNtHeaders?.OptionalHeader.ImageBase == null) return;
 
         UInt32 rawSize = Math.Min(execSection.SizeOfRawData, _maxDisassembleBytes);
         UInt32 rawOffset = execSection.PointerToRawData;
@@ -78,12 +77,12 @@ internal sealed unsafe class AssemblyListObtain : IFeatureObtain
             return;
 
         Byte[] sectionData = new Byte[rawSize];
-        using (FileStream fs = new(_inputData, FileMode.Open, FileAccess.Read))
+        using (FileStream fs = new(_sharePool?.FilePath ?? String.Empty, FileMode.Open, FileAccess.Read))
         {
             fs.Seek(rawOffset, SeekOrigin.Begin);
             fs.ReadExactly(sectionData);
         }
-        Int64 baseAddr = (Int64)((pe.ImageNtHeaders?.OptionalHeader.ImageBase ?? 0) + execSection.VirtualAddress);
+        Int64 baseAddr = (Int64)((_sharePool?.Pe?.ImageNtHeaders?.OptionalHeader.ImageBase ?? 0) + execSection.VirtualAddress);
         String[] mnemonics = Disassemble(machineType, sectionData, baseAddr);
         if (mnemonics.Length == 0) return;
 
@@ -173,7 +172,11 @@ internal sealed unsafe class AssemblyListObtain : IFeatureObtain
     public void Set(Object inputData)
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(AssemblyListObtain));
-        throw new NotImplementedException();
+        if (inputData is not SharePool pool)
+        {
+            throw new ArgumentException("Input data must be a SharePool instance.", nameof(inputData));
+        }
+        _sharePool = pool;
     }
 }
 

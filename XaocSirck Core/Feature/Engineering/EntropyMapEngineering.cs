@@ -11,7 +11,7 @@ internal sealed unsafe class EntropyMapEngineering : IFeatureEngineering
 {
     private readonly Int32 _windowSize = 256;
     private readonly Int32 _totalBytes = 256 * 64;
-    private Byte* _inputData = null;
+    private SharePool? _sharePool;
     private IntPtr _resultPtr = IntPtr.Zero;
     private Boolean _disposed;
 
@@ -30,7 +30,7 @@ internal sealed unsafe class EntropyMapEngineering : IFeatureEngineering
         if (!_disposed)
         {
             Clear();
-            _inputData = null;
+            _sharePool = null;
             _disposed = true;
             GC.SuppressFinalize(this);
         }
@@ -52,7 +52,8 @@ internal sealed unsafe class EntropyMapEngineering : IFeatureEngineering
                 Int32 currentWindowSize = Math.Min(_windowSize, _totalBytes - offset);
                 if (currentWindowSize <= 0)
                     break;
-                Single entropy = CalculateShannonEntropy(_inputData + offset, currentWindowSize);
+                ArgumentNullException.ThrowIfNull(_sharePool, nameof(_sharePool));
+                Single entropy = CalculateShannonEntropy((Byte*)_sharePool.RawBytes + offset, currentWindowSize);
                 outputSpan[w] = entropy / 8.0f;
             }
             _resultPtr = newPtr;
@@ -92,8 +93,8 @@ internal sealed unsafe class EntropyMapEngineering : IFeatureEngineering
     public void Set(Object? inputData)
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(EntropyMapEngineering));
-        if (inputData is not IntPtr ptr)
-            throw new ArgumentException("Input data must be an IntPtr", nameof(inputData));
-        _inputData = (Byte*)ptr;
+        if (inputData is not SharePool pool)
+            throw new ArgumentException("Input data must be a SharePool instance.", nameof(inputData));
+        _sharePool = pool;
     }
 }

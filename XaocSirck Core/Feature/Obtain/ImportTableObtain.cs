@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -17,7 +17,7 @@ internal sealed unsafe class ImportTableObtain : IFeatureObtain
     private readonly HashSet<String> _vocabSet;
     private readonly String[] _vocabTokens;
     private IntPtr _resultPtr = IntPtr.Zero;
-    private String _inputData = String.Empty;
+    private SharePool? _sharePool;
     private Boolean _disposed;
 
     public ImportTableObtain()
@@ -43,7 +43,7 @@ internal sealed unsafe class ImportTableObtain : IFeatureObtain
             Marshal.FreeHGlobal(_resultPtr);
             _resultPtr = IntPtr.Zero;
         }
-        _inputData = String.Empty;
+        _sharePool = null;
     }
 
     public void Dispose()
@@ -66,8 +66,7 @@ internal sealed unsafe class ImportTableObtain : IFeatureObtain
     public void Obtain()
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(ImportTableObtain));
-        PeFile pe = new(_inputData);
-        ImportFunction[]? importedFunctions = pe.ImportedFunctions;
+        ImportFunction[]? importedFunctions = _sharePool?.Pe?.ImportedFunctions;
         HashSet<String> importedApis = new(StringComparer.OrdinalIgnoreCase);
         if (importedFunctions != null)
         {
@@ -103,10 +102,10 @@ internal sealed unsafe class ImportTableObtain : IFeatureObtain
     public void Set(Object inputData)
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(ImportTableObtain));
-        if (inputData is not String path)
+        if (inputData is not SharePool pool)
         {
-            throw new ArgumentException("Input data must be a string representing the file path.", nameof(inputData));
+            throw new ArgumentException("Input data must be a SharePool instance.", nameof(inputData));
         }
-        _inputData = path;
+        _sharePool = pool;
     }
 }
