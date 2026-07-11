@@ -10,16 +10,24 @@ pub use hot::HotCache;
 pub use routes::{router, AppState};
 
 use common::Settings;
+use sqlx::PgPool;
 use std::sync::Arc;
 
 pub async fn create_state(settings: &Settings) -> Arc<AppState> {
-    let cold = ColdCache::connect(&settings.database_url)
+    let pool = PgPool::connect(&settings.database_url)
         .await
-        .expect("cold cache connect failed");
+        .expect("database connect failed");
+    create_state_with_pool(pool, settings.jwt_public_key.clone()).await
+}
+
+pub async fn create_state_with_pool(pool: PgPool, jwt_public_key: String) -> Arc<AppState> {
+    let cold = ColdCache::new(pool)
+        .await
+        .expect("cold cache init failed");
     Arc::new(AppState {
         hot: HotCache::new(),
         cold,
         control: Control::new(),
-        jwt_public_key: settings.jwt_public_key.clone(),
+        jwt_public_key,
     })
 }

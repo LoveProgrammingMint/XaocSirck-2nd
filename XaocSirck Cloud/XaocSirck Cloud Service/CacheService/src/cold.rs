@@ -14,8 +14,7 @@ pub struct ColdEntry {
 }
 
 impl ColdCache {
-    pub async fn connect(database_url: &str) -> Result<Self, sqlx::Error> {
-        let pool = PgPool::connect(database_url).await?;
+    pub async fn new(pool: PgPool) -> Result<Self, sqlx::Error> {
         sqlx::query(
             "CREATE TABLE IF NOT EXISTS cold_cache (
                 sha256 BYTEA PRIMARY KEY,
