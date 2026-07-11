@@ -10,7 +10,6 @@ namespace XaocSirck_Core.Feature.Engineering;
 internal sealed unsafe class EntropyMapEngineering : IFeatureEngineering
 {
     private readonly Int32 _windowSize = 256;
-    private readonly Int32 _windowCount = 64;
     private readonly Int32 _totalBytes = 256 * 64;
     private Byte* _inputData = null;
     private IntPtr _resultPtr = IntPtr.Zero;

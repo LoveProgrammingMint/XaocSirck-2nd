@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -9,7 +9,6 @@ namespace XaocSirck_Core.Feature.Extraction;
 
 internal sealed unsafe class AssemblyListExtraction : IFeatureExtraction
 {
-    private readonly Int32 _maxTokenCount = 512;
     private readonly Int32 _embeddingDim = 192;
     private readonly Dictionary<String, Int32> _tokenToId;
     private readonly Single[] _embeddingTable;
