@@ -1,4 +1,4 @@
-﻿namespace XaocSirck_Core;
+namespace XaocSirck_Core;
 
 public class Entry
 {
