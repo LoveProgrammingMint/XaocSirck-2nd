@@ -1,6 +1,6 @@
 use axum::{
     body::Body,
-    extract::{ConnectInfo, Query, State},
+    extract::{ConnectInfo, Extension, Query, State},
     http::{Request, StatusCode},
     middleware::Next,
     response::{IntoResponse, Response},
@@ -15,7 +15,7 @@ use std::time::Instant;
 use crate::system::SystemState;
 
 pub async fn log_request(
-    State(state): State<Arc<SystemState>>,
+    Extension(state): Extension<Arc<SystemState>>,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
     req: Request<Body>,
     next: Next,
@@ -69,7 +69,7 @@ pub async fn log_request(
 }
 
 pub async fn check_blacklist(
-    State(state): State<Arc<SystemState>>,
+    Extension(state): Extension<Arc<SystemState>>,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
     req: Request<Body>,
     next: Next,
@@ -110,37 +110,55 @@ pub async fn stats(State(state): State<Arc<SystemState>>) -> Result<Json<StatsRe
     let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM request_logs")
         .fetch_one(pool)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|e| {
+            eprintln!("stats total failed: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
     let requests_1h: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM request_logs WHERE time > NOW() - INTERVAL '1 hour'"
     )
     .fetch_one(pool)
     .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    .map_err(|e| {
+        eprintln!("stats requests_1h failed: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
     let requests_1d: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM request_logs WHERE time > NOW() - INTERVAL '1 day'"
     )
     .fetch_one(pool)
     .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    .map_err(|e| {
+        eprintln!("stats requests_1d failed: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
     let avg_duration_ms: f64 = sqlx::query_scalar(
         "SELECT COALESCE(AVG(duration_ms), 0) FROM request_logs WHERE time > NOW() - INTERVAL '1 hour'"
     )
     .fetch_one(pool)
     .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    .map_err(|e| {
+        eprintln!("stats avg_duration_ms failed: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
     let peak_duration_ms: i32 = sqlx::query_scalar(
         "SELECT COALESCE(MAX(duration_ms), 0) FROM request_logs WHERE time > NOW() - INTERVAL '1 hour'"
     )
     .fetch_one(pool)
     .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    .map_err(|e| {
+        eprintln!("stats peak_duration_ms failed: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
     let avg_response_size: f64 = sqlx::query_scalar(
         "SELECT COALESCE(AVG(response_size), 0) FROM request_logs WHERE time > NOW() - INTERVAL '1 hour'"
     )
     .fetch_one(pool)
     .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    .map_err(|e| {
+        eprintln!("stats avg_response_size failed: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
     Ok(Json(StatsResponse {
         total_requests: total,

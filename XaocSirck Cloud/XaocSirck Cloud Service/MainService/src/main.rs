@@ -1,4 +1,4 @@
-use axum::{middleware, routing::delete, routing::get, Router};
+use axum::{middleware, routing::delete, routing::get, Extension, Router};
 use cache_service::create_state_with_pool;
 use common::{Settings, CACHE_ROUTE_PREFIX, CACHE_SERVICE_BIND, SYSTEM_ROUTE_PREFIX};
 use sqlx::PgPool;
@@ -37,14 +37,9 @@ async fn main() {
     let app = Router::new()
         .nest(CACHE_ROUTE_PREFIX, cache_router)
         .nest(SYSTEM_ROUTE_PREFIX, system_router)
-        .layer(middleware::from_fn_with_state(
-            system_state.clone(),
-            system::stats::log_request,
-        ))
-        .layer(middleware::from_fn_with_state(
-            system_state,
-            system::stats::check_blacklist,
-        ));
+        .layer(middleware::from_fn(system::stats::log_request))
+        .layer(middleware::from_fn(system::stats::check_blacklist))
+        .layer(Extension(system_state));
 
     let listener = TcpListener::bind(CACHE_SERVICE_BIND)
         .await
