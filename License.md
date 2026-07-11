@@ -1,335 +1,331 @@
-# MINT License v4
+# MINT License v5
 
 ## Version Information
-- **License Name**: MINT (IceZero Studio Software License) License v4
-- **Version Number**: v4.1.3
-- **Release Date**: 2026-06-28
-- **Copyright Holder**: LinduCMint (hereinafter referred to as "I")
-- **Contact Email**: 3327867352@qq.com
-- **QQ**: 3327867352 (Equally valid for authorization confirmation as email)
+- **License Name**: MINT (Minimal Intellectual & Network Technology) License v5
+- **Version**: v5.0.0
+- **Release Date**: 2026-07-11
+- **License Type**: Strong Copyleft Open Source License
+- **Nature**: Truly open, community-driven free software license
 
 ---
 
-## Article 1 Definitions
+## Article 1: Definitions
 
-1.1 **"The Software"**: Refers to the source code, binary files, documentation, design drafts, API interfaces, and related ancillary materials released by me and governed by this License.
+1.1 **"Software"** means the source code, binary files, documentation, design drafts, API interfaces, configuration files, build scripts, resource files, and related ancillary materials released by the copyright holder and subject to this License.
 
-1.2 **"You"**: Refers to any individual or legal entity that obtains a copy of the Software and agrees to be bound by the terms of this License.
+1.2 **"You"** means any individual or legal entity that obtains a copy of the Software and agrees to be bound by the terms of this License.
 
-1.3 **"Derivative Work"**: Refers to any work created by modifying, translating, adapting, merging, extending, wrapping, calling the API of, or otherwise forming a work based on the Software, including but not limited to plugins, extensions, integration solutions, and secondary development products.
+1.3 **"Derivative Work"** means any work that is based on the Software through modification, translation, adaptation, merging, extension, encapsulation, API calling, integration, adaptation, or any other form. This includes, but is not limited to:
+- Any modified version of the Software’s source code;
+- Works formed by combining, linking, or integrating the Software with other code;
+- Plugins, extensions, modules, or middleware developed using the Software’s APIs, libraries, or modules;
+- Other software systems in which the Software is embedded as a component;
+- Reimplementations or alternative implementations based on the Software’s interface, functional logic;
+- Translated or localized versions of the Software;
+- Any work that contains substantial code of the Software (exceeding 10 lines or core algorithmic logic);
+- Custom front-end interfaces, client programs, and ancillary tools created for a service when the Software is deployed as a network service;
+- Compatible implementations developed based on the Software’s data formats, protocol specifications, and that depend on the Software to run.
 
-1.4 **"Distribution"**: Refers to making the Software or its copies available to any third party in any form, including but not limited to source code distribution, binary distribution, network transmission, cloud service provision, SaaS models, container image distribution, and pre-installation on hardware devices.
+**The following are expressly not Derivative Works:**
+- Completely independent software developed independently, not dependent on the Software to run, and not using the Software’s APIs;
+- External scripts that only use the Software’s standard input/output interfaces (such as command-line arguments and standard pipes);
+- Works that merely reference the functional descriptions in the Software’s public documentation without containing any code;
+- General-purpose infrastructure such as operating systems, programming language runtimes, and databases.
 
-1.5 **"Commercial Use"**: Refers to any use of the Software for the purpose of obtaining direct or indirect economic benefit, including but not limited to sales, leasing, subscription services, advertising revenue, internal business operations, and providing paid technical support.
+1.4 **"Distribution"** means providing the Software or copies thereof to any third party in any form, including but not limited to source code distribution, binary distribution, network transmission, physical media delivery, container image distribution, etc.
 
-1.6 **"Personal Learning Purpose"**: Refers to your use of the Software solely for personal study, research, or experimentation to enhance your own technical skills. Such use must simultaneously satisfy all of the following conditions:
-- (a) It is conducted independently by you personally, or among members of a non-commercial study group within the same specific course/project;
-- (b) You are not in an employment, commission, or contracting relationship with any commercial entity for this purpose;
-- (c) The use does not generate any direct or indirect commercial benefit, whether in monetary or non-monetary form (such as increasing web traffic, enhancing goodwill, redeeming points, etc.).
+1.5 **"Network Interaction"** means providing the functionality or services of the Software to users over a computer network, including but not limited to:
+- Deploying the Software as a web application, web API, or microservice;
+- Providing the Software as SaaS, PaaS, or FaaS;
+- Providing the Software’s interface to users through means such as remote desktop or SSH tunnels;
+- Any behavior that allows users to use the Software’s functions over a network without installing the Software locally on their devices.
 
-1.7 **"Non-Commercial Public Learning Display"**: Refers to describing or displaying the results generated under your "Personal Learning Purpose" on a non-commercial public platform (such as a personal technical blog, or a public repository on GitHub marked "Educational Purpose Only") through text, screenshots, videos, or other forms for the purpose of knowledge sharing, but **excludes** providing the public with a runnable copy of the Software or a Derivative Work (including but not limited to source code, compiled binary files, container images, etc.).
+1.6 **"Corresponding Source"** means all source code needed to generate, install, and run the Software or a Derivative Work, including but not limited to:
+- All source code of the Software and its derivative parts;
+- Scripts used to control compilation and installation;
+- Interface definition files;
+- Source code of dynamically linked libraries required to run the Derivative Work, if such libraries are modified based on the Software.
 
-1.8 **"Commercialization of Results"**: Refers to your application of the knowledge, techniques, or Derivative Works generated under the "Personal Learning Purpose" to any scenario defined as "Commercial Use" in Section 1.5, or incorporating such results into a product, service, patent application, or technical solution intended for commercialization.
+1.7 **"Appropriate Legal Notices"** means copyright notices, license statements, disclaimers of warranty, author acknowledgments, contributor lists, and other legally relevant information retained within the Software.
 
-1.9 **"Community Edition"**: The default version provided for individual developers and open-source community members. It is generally free of charge under the conditions of this License and may be distributed only after obtaining my explicit authorization.
-
-1.10 **"Professional Edition"**: The formally licensed version provided for enterprises, organizations, commercial entities, and any users requiring commercial rights, large-scale deployment, or technical support. It requires contacting me through Article 16 and signing a separate agreement.
-
-1.11 **"Authorization"**: Refers to the various rights granted to you by me in accordance with this License and its corresponding version. Any authorization requiring my special consent shall only be effective upon my explicit written confirmation through the contact methods stipulated in Article 16.
-
----
-
-## Article 2 License Versioning and Updates
-
-2.1 **Version Control**
-This License adopts Semantic Versioning. The current version is v4.1.3.
-
-2.2 **License Updates**
-- I reserve the right to publish updated versions of this License (e.g., MINT v5, v6, etc.).
-- New versions will be publicly released on my designated official platforms (official website, GitHub repository, documentation site, or social media).
-- **Upon release of an updated version, you have a 30-calendar-day review period.** Your continued use of the Software after this period shall be deemed as your acceptance of the new License version.
-- If you do not agree with the new version, you must cease using the Software and destroy all copies within the review period. Continued use constitutes consent to the new agreement without the need for a separate signature.
-
-2.3 **User Obligations**
-- You are obligated to monitor the License update announcements on the aforementioned platforms on your own initiative.
-- If you continue use without timely awareness of updates and consequently violate new terms, upon my notice, you shall have **15 calendar days** to adjust your behavior or cease use. Failure to remedy within this period constitutes a breach, and your authorization will be automatically terminated.
+1.8 **"License Propagation"** means ensuring, when distributing a Derivative Work or providing Network Interaction, that recipients receive the same rights granted under this License and can obtain the Corresponding Source.
 
 ---
 
-## Article 3 Community Edition License
+## Article 2: Grant of Rights
 
-### 3.1 Eligible Users
-Individual developers, open-source community members, and individual users for non-profit study, experimentation, or personal projects.
+The copyright holder hereby grants You a worldwide, royalty-free, non-exclusive, irrevocable license to:
 
-### 3.2 Personal Learning Use Authorization (Free, Automatically Granted)
-Only when you are an individual as defined in Section 1.2 and use the Software for a "Personal Learning Purpose" as defined in Section 1.6, I hereby grant you a free, non-exclusive, non-transferable authorization to:
-- **Use**: Install and run the Software on your personal devices, with no limit on quantity;
-- **Modify**: Modify the source code to create private Derivative Works for your Personal Learning Purpose;
-- **Internal Sharing**: Share the original Software or your modified versions non-publicly within a study group satisfying Section 1.6(a);
-- **Learning Display**: Publicly display your learning outcomes under the conditions of "Non-Commercial Public Learning Display" as defined in Section 1.7.
+- **Use**: use the Software for any purpose;
+- **Reproduce**: make any number of copies of the Software;
+- **Modify**: modify the Software and create Derivative Works;
+- **Merge**: combine the Software with other software;
+- **Publish**: publicly release the Software or Derivative Works;
+- **Distribute**: distribute the Software or Derivative Works in source or binary form;
+- **Sublicense**: sublicense solely under the terms of this License;
+- **Network Interaction**: deploy the Software as a network service.
 
-### 3.3 Actions Requiring My Authorization (Prohibited by Default)
-Any action beyond the explicit authorization in Section 3.2 requires my explicit written authorization through Article 16, in particular:
-- **Public Distribution**: Any act of providing a runnable copy of the Software or Derivative Works to the unspecified public, even if claimed to be "for learning only," constitutes a breach;
-- **Commercial Environment Use**: Any act meeting the definition of "Commercial Use" in Section 1.5;
-- **Commercialization of Results**: Any act triggering "Commercialization of Results" as defined in Section 1.8. You must contact me to obtain a Professional Edition license before such an act occurs;
-- **Providing as a Service**: Making the Software available to others as part of a network service, SaaS, or hosted environment (even if free of charge).
-
-### 3.4 Explicit Prohibitions (Even Authorized Users Shall Not)
-- **Profit-Making**: Directly or indirectly obtaining any form of economic benefit through the Software, unless specifically authorized by me and a commercial agreement is signed;
-- **Removal of Copyright Notices**: Deleting, modifying, or hiding any original copyright notices, license texts, or attribution information;
-- **Malicious Reverse Engineering**: Conducting reverse engineering for illegal purposes such as cracking, circumventing restrictions, or stealing core algorithms;
-- **Trademark Abuse**: Using my trademarks in violation of Article 10 or implying an endorsement relationship with you.
-
-### 3.5 Community Contributions and Contributor Rights
-
-**3.5.1 Contribution License**
-- Contributions in any form (Issues, Pull Requests, code, documentation, designs, etc.) are welcome.
-- By submitting a contribution, you grant me a perpetual, worldwide, royalty-free, irrevocable license to use, copy, modify, distribute, and sublicense your contribution, whether as part of the Software or independently, without the need for further payment.
-- You retain the original copyright of your contribution, but you agree not to assert any copyright, patent rights, or file infringement lawsuits against any licensee regarding this license. This clause is intended to ensure the project's sustainable operation and prevent legal risks arising from individual contributors' subsequent retractions.
-
-**3.5.2 Contributor Attribution**
-- All code contributors whose contributions are accepted (upon PR merge) will be listed in the "Contributors" section of the Software (located in the "About" page of the software interface or in the `CONTRIBUTORS` file distributed with the software) for public acknowledgment.
-- Attribution will be by your GitHub username or your designated real name, as you prefer and indicate when submitting the PR. If unspecified, the GitHub username will be used by default.
-- This attribution is automatically carried with software distributions and you may request its removal.
-- This attribution is solely for recognition and does not imply any ownership or decision-making rights over the Software.
-
-**3.5.3 Prohibition of Rights Abuse**
-You explicitly agree that, regarding the code or content you contributed, you will not:
-- Assert patent infringement against any third party using the Software (or Derivative Works containing your contribution);
-- Demand economic compensation or equity based on your contribution;
-- Withdraw the granted license or attempt to restrict the use of the Software.
-In case of violation, I reserve the right to remove you from the contributor list and pursue liability for breach of contract.
+**The sole condition for the above grants is that You comply with all terms of this License.**
 
 ---
 
-## Article 4 Professional Edition License
+## Article 3: Source Code Disclosure Obligation (Copyleft Core)
 
-### 4.1 Eligible Users
-Corporate legal entities, government agencies, non-profit organizations, and any individuals or entities requiring rights beyond the scope of the Community Edition (such as Commercial Use, large-scale deployment, or distribution of Derivative Works).
+### 3.1 Source Code Disclosure Upon Distribution
+When You distribute copies of the Software or a Derivative Work in any form, You must simultaneously provide the Corresponding Source to recipients in one of the following ways:
 
-### 4.2 Mandatory Contact Requirement
-**All Professional Edition licenses must be obtained by proactively contacting me through the methods listed in Article 16 and signing a formal agreement after negotiation.** Any unauthorized use beyond the scope is considered a serious infringement.
+- Include the Corresponding Source together with the copy;
+- Provide a written offer to give access to the Corresponding Source, valid for at least three (3) years;
+- If distributed on a physical medium, include the source on the same medium or provide a network address for obtaining the source.
 
-### 4.3 Licensing Process
-1. Send an inquiry email to **3327867352@qq.com** or a written message via QQ with the subject/first line formatted as: `[MINT Professional] Your Name or Entity Name`.
-2. The communication should include: applicant entity information, intended use cases and scope, need for Derivative Works and distribution rights, estimated deployment scale, need for customization services, contact person, etc.
-3. I will arrange a business response within **10 working days**; both parties will negotiate and determine the license scope, fees, term, and other terms, and sign a formal Professional Edition license agreement.
-4. The license takes effect upon payment of fees as stipulated in the agreement.
+### 3.2 Source Code Disclosure Upon Network Interaction
+When You provide the functionality of the Software or a Derivative Work to users via Network Interaction, You must:
 
-### 4.4 Professional Edition License Content (Subject to Agreement)
-Typically includes: authorization for commercial operation; large-scale deployment rights; development and distribution rights for Derivative Works; priority technical support and maintenance services; and optional customization development, training, white-label/OEM licensing, etc.
+- Display the License statement and a link to obtain the source code in a prominent location of the user interface (such as an "About" page, footer, or settings page);
+- Ensure that any user who interacts with the Software through Your network service has the right to obtain the Corresponding Source of the version running the network service;
+- The means of obtaining the source must remain continuously valid during the operation of the service and must not impose any technical barriers.
 
-### 4.5 Professional Edition Restrictions
-- Use must not exceed the scope, quantity, territory, or term stipulated in the agreement;
-- The license shall not be transferred or sublicensed to any third party outside the affiliated companies without my written consent;
-- In the event of a change of control such as a merger, demerger, or acquisition, the license must be re-negotiated;
-- Upon expiration or termination, you must immediately cease use and destroy all copies (unless otherwise agreed in the contract).
+### 3.3 Source Code Disclosure for Derivative Works
+Any Derivative Work must be distributed under this License, and its Corresponding Source must be disclosed as required by this Article.
 
 ---
 
-## Article 5 Special License for Educational Institutions
+## Article 4: Protection of Copyright Notices and Legal Notices
 
-5.1 Formal degree-granting educational institutions that need to distribute the Software to students within classroom teaching for the purpose of completing a teaching plan must apply for a **Bulk Educational License** through the contact methods in Article 16. This license is granted by me free of charge or under separately agreed terms.
+### 4.1 Prohibition of Removal or Modification
+**You must not delete, modify, hide, truncate, or otherwise tamper with the Appropriate Legal Notices in the Software.** This includes, but is not limited to:
+- Copyright notice comments in source code file headers;
+- Legal files such as LICENSE, NOTICE, and COPYING;
+- "About" page information in binary distributions;
+- License statements displayed in user interfaces.
 
-5.2 Any internal institutional distribution without permission, or uploading of the Software to public platforms by students, is considered a breach.
+### 4.2 Adding New Notices
+You may add your own copyright notices and license statements in a Derivative Work, provided they do not conflict with existing notices or imply the revocation of existing notices.
 
----
+### 4.3 UI Labeling Requirement
+If the Software or a Derivative Work has a user interface (including graphical interfaces, web interfaces, command-line help text), a license statement must be placed in at least one prominent location among:
 
-## Article 6 Redistribution and Derivative Works Terms
+- Startup screen or loading page;
+- "About", "Help", or "Settings" page;
+- Footer or status bar;
+- Output of the command-line tool's `--license` or `--about` option.
 
-### 6.1 General Principle
-**Any form of public Distribution (including distribution of the original Software and Derivative Works) must obtain my explicit prior authorization.** See Article 16 for contact details.
-
-### 6.2 Derivative Work Definition
-Includes but is not limited to: modified source code or binary files; plugins, extensions, modules; container images or virtual machine images packaging the Software; SaaS platforms, PaaS platforms, API services integrating the Software; standalone applications developed based on the Software’s API; translations, localized versions; documentation, tutorials, books containing substantial excerpts of the Software’s code.
-
-### 6.3 Derivative Work Authorization Application
-Submit the following information via the contact methods in Article 16: description of the original Software version and modifications; the intended use and distribution plan for the Derivative Work; whether Commercial Use or expected revenue model is involved; expected distribution channels, territory, and quantity.
-
-### 6.4 Derivative Work Obligations
-- Must prominently display "Developed based on XaocSirck Antivirus Engine 2nd" or "Powered by XaocSirck 2nd" with a link to the official page;
-- The license agreement of the Derivative Work itself must not weaken or conflict with the constraints of this License on the original Software;
-- I reserve the right to review Derivative Works for compliance, and you shall cooperate by providing necessary information.
-
----
-
-## Article 7 Commercial Use Terms
-
-### 7.1 Commercial Use Definition
-Includes but is not limited to: selling the Software or its copies; providing paid services based on the Software (SaaS, hosting, technical support, training, etc.); developing commercial products based on the Software for profit; using the Software for internal business operations (if not meeting the Community Edition’s free conditions); embedding advertisements or promotional content in the software interface or related services; using the Software as a tool or giveaway to attract users or customers.
-
-### 7.2 Commercial Use Authorization
-**All Commercial Use requires my explicit prior written authorization (typically included in the Professional Edition agreement) and may involve licensing fees.** You must apply through the contact methods in Article 16, explaining the business model, expected scale, and usage method. Use may only commence after both parties sign a formal agreement.
-
-### 7.3 Commercial License Types
-- Professional Edition Commercial License: Standard commercial operation license;
-- OEM License: Embedding the Software into hardware or other software products;
-- White-Label License: Providing services based on the Software under your own brand;
-- Other Customized Commercial Collaborations.
+The statement must include at least:
+> "This software is licensed under the MINT License v5. See [link] for source code and full license text."
 
 ---
 
-## Article 8 Copyright Notice Requirements
+## Article 5: License Propagation (MINT Propagation Clause)
 
-### 8.1 Mandatory Retained Notices
-You must retain the following in all copies or substantial portions:
-- The original copyright notice: "Copyright (c) [Year] LinduCMint";
-- The full text of this License or a clear reference link;
-- The version identifier used (Community Edition / Professional Edition, etc.);
-- Where applicable, the authorization number or confirmation identifier.
+### 5.1 Mandatory License Propagation
+When You distribute the Software or a Derivative Work, recipients automatically receive the same rights granted under this License. You must:
 
-### 8.2 Notice Location
-In the LICENSE or NOTICE file in the source code root directory; in the documentation, installer interface, or "About" dialog of binary distributions; in a prominent location of the user interface; in the corresponding locations in Derivative Works.
+- Provide recipients with a complete copy of this License;
+- Ensure that recipients are aware that their rights are protected by this License;
+- Not impose any additional restrictions on recipients (such as patent fees, royalties, or confidentiality obligations).
 
-### 8.3 Consequences of Violation
-Failure to retain the copyright notices as required constitutes a material breach of this License, and your authorization will be automatically terminated.
+### 5.2 Sublicensing Limitation
+You may sublicense Derivative Works only under the terms of this License. You may not replace this License with any other license (whether more permissive or more restrictive).
+
+### 5.3 License Immutability
+You must not modify any terms of this License and then claim it to be a "modified MINT License." Derivative Works must be fully subject to the original text of this License.
 
 ---
 
-## Article 9 Patent Grant and Defensive Termination
+## Article 6: Modification and Fork Rules
+
+### 6.1 Freedom to Modify
+You have the right to make any modifications to the Software.
+
+### 6.2 Fork Repository Requirements
+When You modify the Software and plan to distribute the modified version, You must:
+
+- Create a fork repository on a publicly accessible code hosting platform (such as GitHub, GitLab, Gitee, etc.);
+- The repository must contain the complete modification history;
+- The repository must be licensed under this License;
+- Explain the modifications, the reasons for them, and the relationship to the original project in the README or a prominent location;
+- Retain the original project's author information and contributor list.
+
+### 6.3 Modification Declaration
+Each modified source code file must include annotations in its header indicating:
+- Modification date;
+- Modifier information;
+- Brief description of the modification;
+- The original copyright notice.
+
+---
+
+## Article 7: Special Provisions for Cloud Services and Network Interaction
+
+### 7.1 Cloud Service Declaration Requirement
+If You deploy the Software or a Derivative Work as a cloud service (SaaS, PaaS, managed service, etc.) offered to the public or specific organizations, You must:
+
+- Submit a service declaration via a GitHub Issue in the original project repository before deployment;
+- The issue title format: `[MINT CLOUD] Service Name - Organization/Individual Name`;
+- The issue body must include:
+  - Service name and description;
+  - Service URL (if public);
+  - Version of the Software used;
+  - Whether modifications were made;
+  - Source code repository URL;
+  - Contact information.
+
+### 7.2 Purpose of Declaration
+This declaration is solely for community awareness and license compliance tracking. The copyright holder has no right to deny a qualified declaration. A declaration is "qualified" if:
+- The service operates under this License;
+- The source code disclosure obligation is complied with;
+- Appropriate Legal Notices are retained.
+
+### 7.3 Declaration Exemptions
+No declaration is required for:
+- Personal deployment on private servers for oneself or family members;
+- Internal use by non-profit organizations, not offered to the public;
+- Internal educational use within educational institutions.
+
+---
+
+## Article 8: Derivative Work Definitions and Boundaries
+
+### 8.1 Works Clearly Constituting Derivative Works
+The following scenarios **clearly constitute** Derivative Works and are subject to all terms of this License:
+- Distributing a version directly modified from the Software’s source code;
+- Introducing the Software into other projects as a library, module, or plugin;
+- Developing clients, tools, or extensions based on the Software’s APIs that require the Software to run;
+- Packaging the Software into container images or virtual machine images for distribution;
+- Custom front-end interfaces when deploying the Software as a network service;
+- Independent reimplementations that use the Software’s core algorithms, data structures, or protocols.
+
+### 8.2 Works Clearly Not Constituting Derivative Works
+The following scenarios **clearly do not constitute** Derivative Works and are not subject to this License:
+- General-purpose infrastructure such as operating systems, compilers, databases, and web servers;
+- Independent clients that communicate with the Software solely through standard network protocols (HTTP, TCP/IP, etc.);
+- Using the Software to process independent output data (e.g., subsequent use of an image generated by the Software);
+- Independent documentation, tutorials, reviews, or books written about the Software;
+- Independently developed competing software that is functionally substitutable for the Software.
+
+### 8.3 Handling of Gray Areas
+For integration scenarios with unclear boundaries, the following principles apply:
+- If removing the Software prevents the work from performing its core functions, it constitutes a Derivative Work;
+- If the Software and the work are tightly coupled through inter-process communication, network APIs, plugin interfaces, etc., it constitutes a Derivative Work;
+- In case of doubt, **the work shall be deemed a Derivative Work** to safeguard community interests.
+
+---
+
+## Article 9: Patent Grant
 
 ### 9.1 Patent License
-I grant you a limited patent license corresponding to the scope of your authorization, allowing you to use the technology covered by the patent claims held by me within the Software.
+Each contributor hereby grants You a perpetual, worldwide, royalty-free, non-exclusive patent license to use any patent claims potentially contained in their contributions, solely to the extent necessary for using, running, reproducing, and distributing the Software.
 
 ### 9.2 Defensive Termination
-If you or your affiliates file a patent infringement lawsuit against any entity concerning **the Software itself** (excluding third-party open-source components integrated within it), all patent licenses granted to you under this License will automatically terminate, except for counterclaims or cross-claims.
+If You initiate patent infringement litigation (excluding cross-claims or counterclaims) against any entity regarding the Software, all patent licenses granted to You under this License shall automatically terminate.
 
-### 9.3 Third-Party Patents
-The Software may contain technology covered by third-party patents, and the relevant rights are governed by those third parties' terms.
+### 9.3 Patent Commitment
+By contributing code to the Software, You commit not to assert any patent rights against any user for your contributions.
 
 ---
 
-## Article 10 Trademark Use
+## Article 10: Trademarks
 
 ### 10.1 Trademark Reservation
-This License does not grant you any rights to use my trademarks, service marks, trade names, logos, domain names, or social media account names.
+This License does not grant You any right to use the trademarks, service marks, trade names, or logos of the copyright holder or contributors.
 
-### 10.2 Prohibition of Endorsement Implication
-Without my explicit written consent, you shall not:
-- Imply in any way that I endorse, sponsor, or am associated with you or your Derivative Works;
-- Claim a partnership with me in promotional materials;
-- Register marks identical or confusingly similar to my trademarks.
-
-### 10.3 Naming Restrictions
-Derivative Works shall not use names highly similar to the original Software, to avoid causing confusion regarding the source.
+### 10.2 Freedom of Naming
+You may use a new name and brand for Derivative Works, but You must not use a name identical or highly similar to the original software to avoid confusion.
 
 ---
 
-## Article 11 Disclaimer of Warranty and Limitation of Liability
+## Article 11: Disclaimer of Warranty and Limitation of Liability
 
 ### 11.1 Disclaimer of Warranty
-The Software is provided "AS IS," without any express or implied warranty of any kind, including but not limited to warranties of merchantability, fitness for a particular purpose, non-infringement, defect-free, vulnerability-free, security risk-free, or continuous availability or error-free operation.
+THE SOFTWARE IS PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
 
 ### 11.2 Limitation of Liability
-To the maximum extent permitted by law, I and any contributors shall not be liable for any direct, indirect, incidental, special, punitive, or consequential damages (including but not limited to loss of profits, data loss, business interruption, reputational harm, or costs of procuring substitute goods or services) arising out of the use or inability to use the Software.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, PUNITIVE, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE SOFTWARE.
 
 ---
 
-## Article 12 Termination
+## Article 12: Termination
 
-### 12.1 Termination Conditions
-- This License and the rights granted herein will terminate automatically if you breach any of its terms.
-- If you do not agree to an updated License version, this License terminates upon your voluntary cessation of use and destruction of all copies within the review period.
+### 12.1 Automatic Termination Conditions
+Your rights under this License shall automatically terminate under the following conditions:
 
-### 12.2 Obligations Upon Termination
-Upon termination, you must:
-- Immediately cease use of the Software and, within **15 calendar days**, destroy or return all copies and related materials;
-- Cease use of Derivative Works based on the Software (unless otherwise agreed in writing);
-- Delete all code that integrates or references the Software.
-- For Professional Edition users, any exit transition period stipulated in the separate contract shall prevail.
+- **Removal of Copyright Notices**: You delete, modify, or hide the Appropriate Legal Notices in the Software;
+- **Violation of Copyleft**: You distribute a Derivative Work without disclosing the Corresponding Source or without licensing it under this License;
+- **Violation of License Propagation**: You impose additional restrictions on recipients or replace this License with another license;
+- **Violation of Cloud Service Terms**: You deploy a cloud service without submitting the required declaration or without disclosing source code;
+- **Patent Attack**: You initiate patent infringement litigation regarding the Software;
+- **Violation of Fork Rules**: You modify the source code without creating a public fork or without preserving the modification history.
 
-### 12.3 Post-Termination Recourse
-Termination of this License does not prejudice my right to pursue liability for breach of contract or claim damages.
+### 12.2 Immediacy of Termination
+The above terminations occur automatically, without notice. From the moment of termination, You lose all rights to continue using, distributing, or modifying the Software.
 
----
+### 12.3 Effects of Termination
+- The rights of recipients of copies already distributed by You are not affected, provided they themselves have not violated this License;
+- You may not distribute new copies;
+- Any network service you deployed must immediately cease operation or be brought into compliance.
 
-## Article 13 Breach and Infringement Handling
-
-### 13.1 Determination of Breach
-The following actions are considered breaches:
-- Unauthorized Commercial Use;
-- Unauthorized public Distribution or Redistribution;
-- Unauthorized creation and Distribution of Derivative Works;
-- Failure to retain copyright notices or attribution information as required;
-- Use beyond the scope of authorization;
-- Failure to adjust behavior after License updates in a timely manner;
-- Any other violation of the terms of this License.
-
-### 13.2 Handling Procedure
-1. Upon discovery or receipt of a report, I will conduct an investigation to verify the facts;
-2. Upon confirmation of a breach, I will send a written notice demanding rectification within a specified period (typically **15 calendar days**);
-3. If rectification is not made within the deadline, or in cases of serious violations, I will take measures including terminating authorization, demanding compensation for damages, publicly disclosing the breach facts, and initiating legal proceedings.
-
-### 13.3 Scope of Damages
-The breaching party shall compensate me for all losses suffered as a result, including direct economic losses, reasonable enforcement costs (legal fees, notarization fees, investigation fees, etc.), and loss of goodwill.
+### 12.4 Restoration of Rights
+After termination, You may apply for restoration of rights by correcting the violation and notifying the community (via a GitHub Issue explaining the rectification). Restoration is determined by community consensus, not by the copyright holder alone.
 
 ---
 
-## Article 14 Governing Law and Dispute Resolution
+## Article 13: Community Governance and Dispute Resolution
 
-### 14.1 Governing Law
-The interpretation and enforcement of this License shall be governed by the laws of the People's Republic of China (excluding the Hong Kong, Macau, and Taiwan regions), without regard to conflict of law rules.
+### 13.1 Decentralized Governance
+Enforcement of this License is not subject to the sole will of the copyright holder. The following entities have the right to monitor License compliance:
+- Any user of the Software;
+- Any contributor to the Software;
+- Any maintainer of a Derivative Work;
+- Recognized arbitration bodies within the open source community.
 
-### 14.2 Dispute Resolution
-Any dispute arising from this License shall first be resolved through friendly negotiation; if negotiation fails, either party may bring a lawsuit in **the competent People's Court at my domicile (i.e., the city where I reside)** .
+### 13.2 Dispute Resolution
+Disputes arising from this License shall be resolved primarily through:
+1. A public discussion by submitting an Issue in the original project’s GitHub repository;
+2. Inviting a community third party for mediation;
+3. If mediation fails, applying the laws of the copyright holder's location and submitting to the jurisdiction of the local competent court.
 
-### 14.3 Validity of Jurisdiction Clause
-The court stipulated in this clause complies with the provisions on jurisdictional agreements under the Civil Procedure Law of the People's Republic of China, without specifying the level of court jurisdiction. If any part of this clause is deemed invalid by law, the remainder shall remain effective, and the nearest competent court to my domicile shall apply.
+### 13.3 Unamendable License
+This License v5 is the final version. Any subsequent version must be formulated by the community through an open and transparent process (such as RFC proposals, community voting) and not by a single entity.
 
 ---
 
-## Article 15 Miscellaneous Provisions
+## Article 14: Contact
+
+### 14.1 Community Communication
+- **GitHub Issue**: Issues page of the original project repository
+- **Issue Labels**: `license`, `compliance`, `cloud-service`
+
+### 14.2 Issue Templates
+
+**Cloud Service Declaration Template:**
+
+## [MINT CLOUD] Service Declaration
+
+- **Service Name**: 
+- **Service URL**: 
+- **Version Used**: 
+- **Modified**: Yes/No
+- **Modification Description**: [if applicable]
+- **Source Repository**: 
+- **Contact Person**: 
+- **Contact Email**: 
+
+**Compliance Consultation Template:**
+
+## [MINT COMPLIANCE] Compliance Consultation
+
+- **Consultant/Organization**: 
+- **Use Case**: 
+- **Specific Question**: 
+- **Relevant Code/Links**: 
+
+## Article 15: Miscellaneous Provisions
 
 ### 15.1 Entire Agreement
-This License constitutes the entire agreement between the parties regarding the licensing of the Software and supersedes all prior oral or written communications.
+This License constitutes the entire agreement between the parties concerning the licensing of the Software.
 
 ### 15.2 Severability
-If any provision is found to be invalid or unenforceable, it shall be modified or deleted to the minimum extent necessary, and the remaining provisions shall continue in full force and effect.
-
-### 15.3 Waiver
-My failure or delay in exercising any right shall not constitute a waiver of that right.
-
-### 15.4 Assignment
-You may not assign your rights or obligations under this License without my written consent. I may freely assign my rights under this License without further notice, provided an announcement is made on a public platform.
-
-### 15.5 Force Majeure
-If performance is prevented by a force majeure event, the affected party shall not be liable for breach of contract, but must promptly notify the other party and provide proof.
-
-### 15.6 Language
-This License is governed by the Chinese version; translations into other languages are for reference only. **In case of any discrepancy between the Chinese original and any translation, the Chinese version shall prevail.**
-
----
-
-## Article 16 Contact Methods and Authorization Confirmation
-
-### 16.1 Official Contact Methods
-You may contact me through the following channels. **All authorizations requiring my confirmation shall only become effective upon my explicit consent message sent through any of these channels.**
-
-| Channel | Address/ID                  | Notes                                             |
-|---------|-----------------------------|---------------------------------------------------|
-| Email   | 3327867352@qq.com           | Recommended for formal authorization, auto-records |
-| QQ      | 3327867352                  | Real-time communication, can confirm authorization |
-
-### 16.2 Email Subject/Message Prefix Standard
-For efficient processing, please use the following prefixes:
-
-| Matter Type                  | Prefix                   | Example                                        |
-|------------------------------|--------------------------|------------------------------------------------|
-| Community Distribution Auth. | `[MINT Community Dist]`  | `[MINT Community Dist] John - GitHub Release`  |
-| Professional Edition Inquiry | `[MINT Professional]`    | `[MINT Professional] Example Tech Inc.`        |
-| Derivative Work Auth.        | `[MINT Derivative]`      | `[MINT Derivative] Jane - Plugin Development`  |
-| Commercial Use Auth.         | `[MINT Commercial]`      | `[MINT Commercial] Team X - SaaS Service`      |
-| Educational License          | `[MINT Academic]`        | `[MINT Academic] YY University - Course Dist.` |
-| License/Other Inquiries      | `[MINT General]`         | `[MINT General] Inquiry regarding v4.1 terms`  |
-
-### 16.3 Authorization Confirmation Validity
-- **Written Confirmation Requirement**: Actions requiring my special permission must be backed by a record containing an explicit authorization statement sent via the above contact methods (e.g., email reply, QQ message).
-- **Informal Communication Invalid**: Oral conversations, third-party relay, or implicit consent do not constitute valid authorization.
-- **Response Time**: I will respond to authorization inquiries within **10-15 working days** (5 working days for urgent matters, subject to public holidays). If no response is received within **20 working days**, the application is deemed denied; you may resubmit or seek other solutions.
-
-### 16.4 Preservation of Authorization Records
-You must properly preserve authorization confirmation records as proof of compliance.
+If any provision of this License is held to be invalid, such provision shall be modified to the minimum extent necessary, and the remaining provisions shall continue in full force and effect.
 
 ---
 
