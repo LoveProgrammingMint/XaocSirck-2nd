@@ -1,11 +1,7 @@
-/XaocSirck Online Service/x64/
 /.vs
-/XaocSirck Core/obj
-/XaocSirck Inference Service/x64/
-/x64/
-/XaocSirck Core/bin/
-/.vscode
-
+obj
+x64
+bin
 # Logs
 logs
 *.log
@@ -49,4 +45,6 @@ __screenshots__/
 
 #Rust
 target/
+
+# Security
 /XaocSirck Cloud/XaocSirck Cloud Service/settings.json
