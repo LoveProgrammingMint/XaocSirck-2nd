@@ -133,7 +133,7 @@ pub async fn stats(State(state): State<Arc<SystemState>>) -> Result<Json<StatsRe
         StatusCode::INTERNAL_SERVER_ERROR
     })?;
     let avg_duration_ms: f64 = sqlx::query_scalar(
-        "SELECT COALESCE(AVG(duration_ms), 0) FROM request_logs WHERE time > NOW() - INTERVAL '1 hour'"
+        "SELECT COALESCE(AVG(duration_ms), 0)::FLOAT8 FROM request_logs WHERE time > NOW() - INTERVAL '1 hour'"
     )
     .fetch_one(pool)
     .await
@@ -151,7 +151,7 @@ pub async fn stats(State(state): State<Arc<SystemState>>) -> Result<Json<StatsRe
         StatusCode::INTERNAL_SERVER_ERROR
     })?;
     let avg_response_size: f64 = sqlx::query_scalar(
-        "SELECT COALESCE(AVG(response_size), 0) FROM request_logs WHERE time > NOW() - INTERVAL '1 hour'"
+        "SELECT COALESCE(AVG(response_size), 0)::FLOAT8 FROM request_logs WHERE time > NOW() - INTERVAL '1 hour'"
     )
     .fetch_one(pool)
     .await

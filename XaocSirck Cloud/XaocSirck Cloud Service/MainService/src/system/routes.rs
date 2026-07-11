@@ -17,7 +17,7 @@ pub async fn route_stats(
     State(state): State<Arc<SystemState>>,
 ) -> Result<Json<Vec<RouteStat>>, StatusCode> {
     let rows = sqlx::query(
-        "SELECT path, method, COUNT(*) as calls, AVG(duration_ms) as avg_ms
+        "SELECT path, method, COUNT(*) as calls, AVG(duration_ms)::FLOAT8 as avg_ms
          FROM request_logs
          WHERE time > NOW() - INTERVAL '1 day'
          GROUP BY path, method
