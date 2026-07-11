@@ -1,3 +1,3 @@
 [workspace]
-members = ["D:\\IceZero\\Projects\\XaocSirck 2nd\\XaocSirck Cloud\\XaocSirck Cloud Service\\*"]
+members = ["D:\\IceZero\\Projects\\XaocSirck 2nd\\XaocSirck Cloud\\XaocSirck Cloud Service\\*", "XaocSirck Cloud/XaocSirck Cloud Service/CacheService"]
 resolver = "2"
