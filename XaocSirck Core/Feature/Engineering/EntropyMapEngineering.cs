@@ -40,22 +40,17 @@ internal sealed unsafe class EntropyMapEngineering : IFeatureEngineering
     public void Engineer()
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(EntropyMapEngineering));
-        Int32 processLength = Math.Min(_dataLength, _totalBytes);
-        if (processLength == 0)
-        {
-            return;
-        }
         Int32 outputLength = _windowSize;
         IntPtr newPtr = Marshal.AllocHGlobal(sizeof(Single) * outputLength);
         try
         {
             Span<Single> outputSpan = new((void*)newPtr, outputLength);
             outputSpan.Clear();
-            Int32 actualWindows = (processLength + _windowSize - 1) / _windowSize;
+            Int32 actualWindows = (_totalBytes + _windowSize - 1) / _windowSize;
             for (Int32 w = 0; w < actualWindows; w++)
             {
                 Int32 offset = w * _windowSize;
-                Int32 currentWindowSize = Math.Min(_windowSize, processLength - offset);
+                Int32 currentWindowSize = Math.Min(_windowSize, _totalBytes - offset);
                 if (currentWindowSize <= 0)
                     break;
                 Single entropy = CalculateShannonEntropy(_inputData + offset, currentWindowSize);
