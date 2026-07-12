@@ -12,6 +12,7 @@
   <ItemGroup>
     <Folder Include="Cloud\" />
     <Folder Include="Core\" />
+    <Folder Include="Feature\Engineering\Zeroflows\" />
     <Folder Include="Native\" />
   </ItemGroup>
 
