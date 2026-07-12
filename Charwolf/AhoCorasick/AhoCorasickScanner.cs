@@ -43,12 +43,6 @@ internal sealed unsafe class AcScanner : IDisposable
             sizeof(Int32) * result.OutputPattern.Length +
             sizeof(Int32) * _patternCount;
 
-        if (totalBytes <= StackAllocThreshold)
-        {
-            goto HeapAlloc;
-        }
-
-    HeapAlloc:
         _nativeBlock = (IntPtr)NativeMemory.AlignedAlloc((UIntPtr)totalBytes, (UIntPtr)64);
         if (_nativeBlock == IntPtr.Zero)
             throw new OutOfMemoryException("Failed to allocate AC tables");
@@ -122,55 +116,6 @@ internal sealed unsafe class AcScanner : IDisposable
                     outputBuffer[matchCount++] = new AcMatch(pid, i - len + 1, i + 1);
 
                     head = _outputNext[head];
-                }
-            }
-        }
-
-        return matchCount;
-    }
-
-    public static Int32 ScanStack(
-        ReadOnlySpan<Byte> data,
-        ReadOnlySpan<Int16> baseArr,
-        ReadOnlySpan<Int16> checkArr,
-        ReadOnlySpan<Int16> failArr,
-        ReadOnlySpan<Int32> outputHead,
-        ReadOnlySpan<Int32> outputNext,
-        ReadOnlySpan<Int32> outputPattern,
-        ReadOnlySpan<Int32> patternLength,
-        Span<AcMatch> outputBuffer)
-    {
-        Int32 matchCount = 0;
-        Int32 state = 0;
-        Int32 bufLen = outputBuffer.Length;
-        Int32 arraySize = baseArr.Length;
-
-        fixed (Byte* d = data)
-        fixed (Int16* b = baseArr, c = checkArr, f = failArr)
-        fixed (Int32* h = outputHead, n = outputNext, p = outputPattern, l = patternLength)
-        {
-            for (Int32 i = 0; i < data.Length; i++)
-            {
-                Byte by = d[i];
-                Int32 t = b[state] + by;
-                Int32 next = (UInt32)t < (UInt32)arraySize && c[t] == state ? t : -1;
-
-                while (next == -1 && state != 0)
-                {
-                    state = f[state];
-                    t = b[state] + by;
-                    next = (UInt32)t < (UInt32)arraySize && c[t] == state ? t : -1;
-                }
-
-                state = next == -1 ? 0 : next;
-
-                Int32 head = h[state];
-                while (head != -1)
-                {
-                    if (matchCount >= bufLen) return matchCount;
-                    Int32 pid = p[head];
-                    outputBuffer[matchCount++] = new AcMatch(pid, i - l[pid] + 1, i + 1);
-                    head = n[head];
                 }
             }
         }
