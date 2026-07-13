@@ -21,3 +21,8 @@ internal enum _Mode_Signature : Byte
     Loose,
     Strict
 }
+
+internal enum _
+{
+    
+}

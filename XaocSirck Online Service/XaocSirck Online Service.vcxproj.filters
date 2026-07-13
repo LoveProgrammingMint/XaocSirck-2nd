@@ -18,9 +18,21 @@
     <ClCompile Include="DLLMain.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Api.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Communication.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Base.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Api.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Communication.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
