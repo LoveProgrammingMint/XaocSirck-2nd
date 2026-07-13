@@ -55,3 +55,19 @@ Api::Pack Api::SignatureQueryPack(std::span<const Byte> signature)
     }
     return BuildPostPack(L"/api/signature/query", "signature", ToHexString(signature));
 }
+
+Api::Pack Api::UpdateVersionPack()
+{
+    Pack pack;
+    pack.Router = L"/api/update/version";
+    pack.Method = HttpMethod::Get;
+    return pack;
+}
+
+Api::Pack Api::UpdateDownloadPack()
+{
+    Pack pack;
+    pack.Router = L"/api/update/download";
+    pack.Method = HttpMethod::Get;
+    return pack;
+}

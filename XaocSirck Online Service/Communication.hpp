@@ -13,6 +13,8 @@ public:
     void SetServerAddress(const String& address);
     Byte SignatureQuery(const Api::Pack& pack);
     Byte CacheQuery(const Api::Pack& pack);
+    String UpdateVersion(const Api::Pack& pack);
+    std::vector<Byte> UpdateDownload(const Api::Pack& pack);
 
 private:
     class WinHttpHandle
@@ -41,5 +43,7 @@ private:
     Boolean ParseServerAddress(const String& address);
     void EnsureSession();
     void EnsureConnect();
+    std::vector<Byte> ReadResponseBody(const Api::Pack& pack);
     Byte SendRequest(const Api::Pack& pack);
+    static String Utf8ToWide(const std::vector<Byte>& value);
 };

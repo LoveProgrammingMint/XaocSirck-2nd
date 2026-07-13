@@ -141,17 +141,33 @@ Byte Communication::CacheQuery(const Api::Pack& pack)
     }
 }
 
+String Communication::UpdateVersion(const Api::Pack& pack)
+{
+    return Utf8ToWide(ReadResponseBody(pack));
+}
+
+std::vector<Byte> Communication::UpdateDownload(const Api::Pack& pack)
+{
+    return ReadResponseBody(pack);
+}
+
 Byte Communication::SendRequest(const Api::Pack& pack)
+{
+    std::vector<Byte> response = ReadResponseBody(pack);
+    return response.empty() ? static_cast<Byte>(2) : response[0];
+}
+
+std::vector<Byte> Communication::ReadResponseBody(const Api::Pack& pack)
 {
     if (_serverHost.empty())
     {
-        return 2;
+        return {};
     }
 
     EnsureConnect();
     if (!_connect)
     {
-        return 2;
+        return {};
     }
 
     std::wstring verb = pack.Method == Api::HttpMethod::Get ? L"GET" : L"POST";
@@ -171,7 +187,7 @@ Byte Communication::SendRequest(const Api::Pack& pack)
         _useHttps ? WINHTTP_FLAG_SECURE : 0));
     if (!request)
     {
-        return 2;
+        return {};
     }
 
     std::wstring headers;
@@ -191,7 +207,7 @@ Byte Communication::SendRequest(const Api::Pack& pack)
         0);
     if (!sent || !WinHttpReceiveResponse(request.Get(), nullptr))
     {
-        return 2;
+        return {};
     }
 
     DWORD statusCode = 0;
@@ -205,10 +221,10 @@ Byte Communication::SendRequest(const Api::Pack& pack)
             WINHTTP_NO_HEADER_INDEX)
         || statusCode != HTTP_STATUS_OK)
     {
-        return 2;
+        return {};
     }
 
-    std::string response;
+    std::vector<Byte> response;
     DWORD available = 0;
     DWORD read = 0;
     std::vector<char> buffer(8192);
@@ -224,8 +240,24 @@ Byte Communication::SendRequest(const Api::Pack& pack)
         {
             break;
         }
-        response.append(buffer.data(), read);
+        response.insert(response.end(), reinterpret_cast<Byte*>(buffer.data()), reinterpret_cast<Byte*>(buffer.data() + read));
     }
 
-    return response.empty() ? static_cast<Byte>(2) : static_cast<Byte>(response[0]);
+    return response;
+}
+
+String Communication::Utf8ToWide(const std::vector<Byte>& value)
+{
+    if (value.empty())
+    {
+        return {};
+    }
+    Int32 size = MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(value.data()), static_cast<Int32>(value.size()), nullptr, 0);
+    if (size <= 0)
+    {
+        return {};
+    }
+    String result(static_cast<size_t>(size), L'\0');
+    MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(value.data()), static_cast<Int32>(value.size()), result.data(), size);
+    return result;
 }

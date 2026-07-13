@@ -24,6 +24,8 @@ public:
 
     static Pack CacheQueryPack(std::span<const Byte> sha256);
     static Pack SignatureQueryPack(std::span<const Byte> signature);
+    static Pack UpdateVersionPack();
+    static Pack UpdateDownloadPack();
 
 private:
     static std::string ToHexString(std::span<const Byte> data);
