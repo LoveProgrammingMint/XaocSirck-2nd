@@ -41,11 +41,15 @@ export async function clearColdCache(): Promise<{ cleared: number }> {
   return request('/api/cache/clear', { method: 'POST' })
 }
 
-export async function updateHotCache(kind: 'malicious' | 'clean', file: File): Promise<void> {
-  const form = new FormData()
-  form.append('kind', kind)
-  form.append('file', file)
-  return request('/api/cache/update', { method: 'POST', body: form })
+export async function buildHotCache(): Promise<{ malicious: number; clean: number }> {
+  return request('/api/cache/build', { method: 'POST' })
+}
+
+export async function deleteHotCache(kind?: 'malicious' | 'clean'): Promise<void> {
+  return request('/api/cache/hot/delete', {
+    method: 'POST',
+    body: JSON.stringify({ kind }),
+  })
 }
 
 export async function stopService(): Promise<string> {

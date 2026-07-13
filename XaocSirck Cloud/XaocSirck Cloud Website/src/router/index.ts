@@ -63,6 +63,12 @@ const router = createRouter({
           meta: { title: '缓存更新流程', subtitle: '维护向导' },
         },
         {
+          path: 'signature',
+          name: 'signature-cloud',
+          component: () => import('@/views/SignatureCloud.vue'),
+          meta: { title: '签名云', subtitle: '签名录入与查询' },
+        },
+        {
           path: 'docs/api',
           name: 'api-docs',
           component: () => import('@/views/ApiDocs.vue'),
