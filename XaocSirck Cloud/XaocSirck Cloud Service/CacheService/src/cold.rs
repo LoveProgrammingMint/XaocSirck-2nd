@@ -89,6 +89,23 @@ impl ColdCache {
             .collect())
     }
 
+    pub async fn list_all(&self) -> Result<Vec<ColdEntry>, sqlx::Error> {
+        let rows = sqlx::query(
+            "SELECT sha256, label, operator_token, created_at FROM cold_cache ORDER BY created_at DESC",
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows
+            .into_iter()
+            .map(|r| ColdEntry {
+                sha256: hex::encode(r.get::<Vec<u8>, _>("sha256")),
+                label: r.get("label"),
+                operator_token: r.get("operator_token"),
+                created_at: r.get("created_at"),
+            })
+            .collect())
+    }
+
     pub async fn clear(&self) -> Result<u64, sqlx::Error> {
         let result = sqlx::query("DELETE FROM cold_cache")
             .execute(&self.pool)

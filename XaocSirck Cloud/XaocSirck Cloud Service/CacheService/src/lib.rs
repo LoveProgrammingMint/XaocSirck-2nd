@@ -1,4 +1,3 @@
-mod auth;
 mod cold;
 mod control;
 mod hot;
@@ -7,7 +6,7 @@ mod routes;
 pub use cold::ColdCache;
 pub use control::Control;
 pub use hot::HotCache;
-pub use routes::{router, AppState};
+pub use routes::{admin_router, build_hot_cache, public_router, AppState};
 
 use common::Settings;
 use sqlx::PgPool;

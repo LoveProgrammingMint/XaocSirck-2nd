@@ -51,17 +51,37 @@ impl HotCache {
         NOT_FOUND
     }
 
-    pub async fn update(&self, kind: HotKind, data: &[u8]) -> std::io::Result<()> {
+    pub async fn build(&self, kind: HotKind, keys: Vec<[u8; 32]>) -> std::io::Result<()> {
         let path = kind.path();
+        let func = tokio::task::block_in_place(|| Function::from(keys));
         let mut file = File::create(path)?;
-        file.write_all(data)?;
+        func.write(&mut file)?;
         file.flush()?;
-        let new = tokio::task::block_in_place(|| load_file(kind.path()));
         let lock = match kind {
             HotKind::Malicious => &self.mal,
             HotKind::Clean => &self.cle,
         };
-        *lock.write().await = new;
+        *lock.write().await = Some(func);
+        Ok(())
+    }
+
+    pub async fn clear(&self, kind: Option<HotKind>) -> std::io::Result<()> {
+        match kind {
+            Some(HotKind::Malicious) => {
+                let _ = std::fs::remove_file(HotKind::Malicious.path());
+                *self.mal.write().await = None;
+            }
+            Some(HotKind::Clean) => {
+                let _ = std::fs::remove_file(HotKind::Clean.path());
+                *self.cle.write().await = None;
+            }
+            None => {
+                let _ = std::fs::remove_file(HotKind::Malicious.path());
+                let _ = std::fs::remove_file(HotKind::Clean.path());
+                *self.mal.write().await = None;
+                *self.cle.write().await = None;
+            }
+        }
         Ok(())
     }
 }
