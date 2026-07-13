@@ -32,7 +32,7 @@ function tryDecodeJWT(token: string): { header?: Record<string, unknown>; payloa
       const json = atob(normalized)
       return JSON.parse(json)
     }
-    return { header: decode(parts[0]), payload: decode(parts[1]) }
+    return { header: decode(parts[0]!), payload: decode(parts[1]!) }
   } catch {
     return { error: 'Base64 解码失败，请检查 token 是否完整' }
   }

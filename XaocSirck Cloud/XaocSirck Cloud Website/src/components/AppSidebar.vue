@@ -44,7 +44,7 @@ const groups: NavGroup[] = [
         label: '热缓存更新',
         icon: 'upload',
         children: [
-          { label: '上传 MPHF', sublabel: 'HotMal / HotCle', to: '/cache/hot' },
+          { label: '构建 / 删除', sublabel: '强制构建 / 清除热缓存', to: '/cache/hot' },
         ],
       },
       {
@@ -65,6 +65,12 @@ const groups: NavGroup[] = [
         sublabel: '维护向导',
         icon: 'flow',
         to: '/cache/flow',
+      },
+      {
+        label: '签名云',
+        sublabel: '签名录入与查询',
+        icon: 'shield',
+        to: '/signature',
       },
     ],
   },
