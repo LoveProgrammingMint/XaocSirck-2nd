@@ -4,7 +4,7 @@
 #include "Base.hpp"
 #include <winhttp.h>
 
-class XAOCSIRCKONLINE_API Communication
+class Communication
 {
 public:
     Communication();

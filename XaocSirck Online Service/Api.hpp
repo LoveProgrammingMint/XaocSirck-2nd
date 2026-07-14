@@ -5,7 +5,7 @@
 #include <span>
 #include <string>
 
-class XAOCSIRCKONLINE_API Api
+class Api
 {
 public:
     enum class HttpMethod

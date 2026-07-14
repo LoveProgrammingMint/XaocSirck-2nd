@@ -1,7 +1,7 @@
-#include "Base.h"
-#include "SessionManagement.h"
-#include "SessionInference.h"
-#include "Algorithm.h"
+#include "Base.hpp"
+#include "SessionManagement.hpp"
+#include "SessionInference.hpp"
+#include "Algorithm.hpp"
 #include <algorithm>
 #include <vector>
 
