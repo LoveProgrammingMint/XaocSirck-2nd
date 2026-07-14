@@ -1,7 +1,7 @@
 # MINT License v5
 
 ## Version Information
-- **License Name**: MINT (Minimal Intellectual & Network Technology) License v5
+- **License Name**: MINT (IceZero Studio License by LinduCMint) License v5
 - **Version**: v5.0.0
 - **Release Date**: 2026-07-11
 - **License Type**: Strong Copyleft Open Source License
