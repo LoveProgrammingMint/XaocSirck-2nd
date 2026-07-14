@@ -14,11 +14,6 @@ internal sealed unsafe class RawByteObtain : IFeatureObtain
     private SharePool? _sharePool;
     private Boolean _disposed;
 
-    internal RawByteObtain()
-    {
-        Clear();
-    }
-
     public void Clear()
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(RawByteObtain));
