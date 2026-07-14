@@ -47,3 +47,18 @@ private:
     Byte SendRequest(const Api::Pack& pack);
     static String Utf8ToWide(const std::vector<Byte>& value);
 };
+
+extern "C"
+{
+    typedef struct XsCommunication XsCommunication;
+
+    XAOCSIRCKONLINE_API XsCommunication* XsCommunication_Create();
+    XAOCSIRCKONLINE_API void XsCommunication_Destroy(XsCommunication* instance);
+    XAOCSIRCKONLINE_API void XsCommunication_SetServerAddress(XsCommunication* instance, const wchar_t* address);
+    XAOCSIRCKONLINE_API uint8_t XsCommunication_SignatureQuery(XsCommunication* instance, const XsApiPack* pack);
+    XAOCSIRCKONLINE_API uint8_t XsCommunication_CacheQuery(XsCommunication* instance, const XsApiPack* pack);
+    XAOCSIRCKONLINE_API wchar_t* XsCommunication_UpdateVersion(XsCommunication* instance, const XsApiPack* pack);
+    XAOCSIRCKONLINE_API void XsCommunication_FreeString(wchar_t* str);
+    XAOCSIRCKONLINE_API uint8_t* XsCommunication_UpdateDownload(XsCommunication* instance, const XsApiPack* pack, uint64_t* outLength);
+    XAOCSIRCKONLINE_API void XsCommunication_FreeBuffer(uint8_t* buffer);
+}

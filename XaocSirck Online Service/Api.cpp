@@ -71,3 +71,77 @@ Api::Pack Api::UpdateDownloadPack()
     pack.Method = HttpMethod::Get;
     return pack;
 }
+
+struct XsApiPackHolder
+{
+    XsApiPack Pack;
+    std::wstring Router;
+    std::wstring Query;
+    std::string Body;
+};
+
+static XsApiPack* BuildXsPack(const Api::Pack& pack)
+{
+    XsApiPackHolder* holder = new XsApiPackHolder();
+    holder->Router = pack.Router;
+    holder->Query = pack.Query;
+    holder->Body = pack.Body;
+    holder->Pack.Router = holder->Router.c_str();
+    holder->Pack.Query = holder->Query.c_str();
+    holder->Pack.Body = holder->Body.c_str();
+    holder->Pack.Method = pack.Method == Api::HttpMethod::Get ? 0 : 1;
+    return &holder->Pack;
+}
+
+extern "C" XsApiPack* XsApi_CacheQueryPack(const uint8_t* data, uint64_t length)
+{
+    try
+    {
+        return BuildXsPack(Api::CacheQueryPack(std::span<const Byte>(data, static_cast<size_t>(length))));
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
+}
+
+extern "C" XsApiPack* XsApi_SignatureQueryPack(const uint8_t* data, uint64_t length)
+{
+    try
+    {
+        return BuildXsPack(Api::SignatureQueryPack(std::span<const Byte>(data, static_cast<size_t>(length))));
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
+}
+
+extern "C" XsApiPack* XsApi_UpdateVersionPack()
+{
+    try
+    {
+        return BuildXsPack(Api::UpdateVersionPack());
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
+}
+
+extern "C" XsApiPack* XsApi_UpdateDownloadPack()
+{
+    try
+    {
+        return BuildXsPack(Api::UpdateDownloadPack());
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
+}
+
+extern "C" void XsApi_FreePack(XsApiPack* pack)
+{
+    delete reinterpret_cast<XsApiPackHolder*>(pack);
+}

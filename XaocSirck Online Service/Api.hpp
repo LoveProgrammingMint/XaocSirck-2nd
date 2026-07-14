@@ -32,3 +32,12 @@ private:
     static Pack BuildGetPack(const String& router, const String& queryKey, const std::string& value);
     static Pack BuildPostPack(const String& router, const std::string& key, const std::string& value);
 };
+
+extern "C"
+{
+    XAOCSIRCKONLINE_API XsApiPack* XsApi_CacheQueryPack(const uint8_t* data, uint64_t length);
+    XAOCSIRCKONLINE_API XsApiPack* XsApi_SignatureQueryPack(const uint8_t* data, uint64_t length);
+    XAOCSIRCKONLINE_API XsApiPack* XsApi_UpdateVersionPack();
+    XAOCSIRCKONLINE_API XsApiPack* XsApi_UpdateDownloadPack();
+    XAOCSIRCKONLINE_API void XsApi_FreePack(XsApiPack* pack);
+}

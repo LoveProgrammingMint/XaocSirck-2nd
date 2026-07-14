@@ -261,3 +261,150 @@ String Communication::Utf8ToWide(const std::vector<Byte>& value)
     MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(value.data()), static_cast<Int32>(value.size()), result.data(), size);
     return result;
 }
+
+struct XsCommunication
+{
+    Communication Instance;
+};
+
+static Api::Pack ToCppPack(const XsApiPack* pack)
+{
+    Api::Pack result;
+    result.Router = pack && pack->Router ? pack->Router : L"";
+    result.Method = pack && pack->Method == 1 ? Api::HttpMethod::Post : Api::HttpMethod::Get;
+    result.Query = pack && pack->Query ? pack->Query : L"";
+    result.Body = pack && pack->Body ? pack->Body : "";
+    return result;
+}
+
+extern "C" XsCommunication* XsCommunication_Create()
+{
+    try
+    {
+        return new XsCommunication{Communication()};
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
+}
+
+extern "C" void XsCommunication_Destroy(XsCommunication* instance)
+{
+    delete instance;
+}
+
+extern "C" void XsCommunication_SetServerAddress(XsCommunication* instance, const wchar_t* address)
+{
+    try
+    {
+        if (instance != nullptr && address != nullptr)
+        {
+            instance->Instance.SetServerAddress(address);
+        }
+    }
+    catch (...)
+    {
+    }
+}
+
+extern "C" uint8_t XsCommunication_SignatureQuery(XsCommunication* instance, const XsApiPack* pack)
+{
+    try
+    {
+        if (instance == nullptr)
+        {
+            return 2;
+        }
+        return instance->Instance.SignatureQuery(ToCppPack(pack));
+    }
+    catch (...)
+    {
+        return 2;
+    }
+}
+
+extern "C" uint8_t XsCommunication_CacheQuery(XsCommunication* instance, const XsApiPack* pack)
+{
+    try
+    {
+        if (instance == nullptr)
+        {
+            return 2;
+        }
+        return instance->Instance.CacheQuery(ToCppPack(pack));
+    }
+    catch (...)
+    {
+        return 2;
+    }
+}
+
+extern "C" wchar_t* XsCommunication_UpdateVersion(XsCommunication* instance, const XsApiPack* pack)
+{
+    try
+    {
+        if (instance == nullptr)
+        {
+            return nullptr;
+        }
+        String version = instance->Instance.UpdateVersion(ToCppPack(pack));
+        if (version.empty())
+        {
+            return nullptr;
+        }
+        wchar_t* result = new wchar_t[version.length() + 1];
+        std::copy(version.begin(), version.end(), result);
+        result[version.length()] = L'\0';
+        return result;
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
+}
+
+extern "C" void XsCommunication_FreeString(wchar_t* str)
+{
+    delete[] str;
+}
+
+extern "C" uint8_t* XsCommunication_UpdateDownload(XsCommunication* instance, const XsApiPack* pack, uint64_t* outLength)
+{
+    try
+    {
+        if (instance == nullptr)
+        {
+            if (outLength != nullptr)
+            {
+                *outLength = 0;
+            }
+            return nullptr;
+        }
+        std::vector<Byte> data = instance->Instance.UpdateDownload(ToCppPack(pack));
+        if (outLength != nullptr)
+        {
+            *outLength = static_cast<uint64_t>(data.size());
+        }
+        if (data.empty())
+        {
+            return nullptr;
+        }
+        uint8_t* result = new uint8_t[data.size()];
+        std::copy(data.begin(), data.end(), result);
+        return result;
+    }
+    catch (...)
+    {
+        if (outLength != nullptr)
+        {
+            *outLength = 0;
+        }
+        return nullptr;
+    }
+}
+
+extern "C" void XsCommunication_FreeBuffer(uint8_t* buffer)
+{
+    delete[] buffer;
+}
