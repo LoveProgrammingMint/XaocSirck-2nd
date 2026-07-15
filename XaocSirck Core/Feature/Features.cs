@@ -67,9 +67,9 @@ internal sealed unsafe class Features
         ZPS.Register(ZPM, ZPE);
     }
 
-    public FeaturesStruct Execute()
+    public FeaturesStruct Execute(FeaturesStruct? featuresStruct)
     {
-        FeaturesStruct features = new();
+        FeaturesStruct features = featuresStruct ?? new();
         switch (mode.Bitremal)
         {
             case _Mode_Bitremal.Disabled:
