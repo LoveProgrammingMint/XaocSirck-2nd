@@ -113,13 +113,12 @@ internal sealed unsafe class AssemblyListObtain : IFeatureObtain
         Int32[] encoded = _bpe.Encode(rawTokens);
         if (encoded.Length == 0) return;
 
-        Int32 totalSize = sizeof(Int32) + _compressedTokenCount * sizeof(Int32);
+        Int32 totalSize = _compressedTokenCount * sizeof(Int32);
         _resultPtr = (IntPtr)NativeMemory.AlignedAlloc((UIntPtr)totalSize, 64);
         NativeMemory.Clear((void*)_resultPtr, (UIntPtr)totalSize);
 
-        *(Int32*)_resultPtr = totalSize;
-        Int32* idPtr = (Int32*)_resultPtr + 1;
         Int32 copyLen = Math.Min(encoded.Length, _compressedTokenCount);
+        Int32* idPtr = (Int32*)_resultPtr;
         for (Int32 i = 0; i < copyLen; i++)
             idPtr[i] = encoded[i];
     }

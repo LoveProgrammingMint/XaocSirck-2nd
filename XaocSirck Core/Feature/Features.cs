@@ -18,6 +18,20 @@ internal struct FeaturesStruct
     public IntPtr Zeroflow;
 }
 
+internal struct FeaturesStruct_Cache
+{
+    public IntPtr RB;
+    public const Int32 RB_L = 16384;
+    public IntPtr AL;
+    public const Int32 AL_L = 512;
+    public IntPtr IT;
+    public const Int32 IT_L = 417;
+    public IntPtr EM;
+    public const Int32 EM_L = 256;
+    public IntPtr Zeroflow;
+    public const Int32 Zeroflows_L = 256;
+}
+
 internal sealed unsafe class Features
 {
     private EngineMode mode;
@@ -121,8 +135,34 @@ internal sealed unsafe class Features
                 ZBL?.Execute();
                 ZPS?.LoadFromFile(BSP.FilePath ?? throw new ArgumentNullException(BSP.FilePath));
                 ZPS?.Execute();
+                features.Zeroflow = (IntPtr)ZSF.FeatureTensor;
                 break;
         }
+        return features;
+    }
+
+    public FeaturesStruct_Cache Execute_Cache()
+    {
+        FeaturesStruct_Cache features = new();
+
+        RBO.Clear();
+        RBO.Obtain();
+        features.RB = RBO.GetResult();
+        ALO.Clear();
+        ALO.Obtain();
+        features.AL = ALO.GetResult();
+        ITO.Clear();
+        ITO.Obtain();
+        features.IT = ITO.GetResult();
+        EME.Clear();
+        EME.Engineer();
+        features.EM = EME.GetResult();
+
+        ZBL?.LoadFromFile(BSP.FilePath ?? throw new ArgumentNullException(BSP.FilePath));
+        ZBL?.Execute();
+        ZPS?.LoadFromFile(BSP.FilePath ?? throw new ArgumentNullException(BSP.FilePath));
+        ZPS?.Execute();
+        features.Zeroflow = (IntPtr)ZSF.FeatureTensor;
         return features;
     }
 
