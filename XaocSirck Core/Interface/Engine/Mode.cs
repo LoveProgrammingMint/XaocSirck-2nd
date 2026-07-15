@@ -9,7 +9,8 @@ internal enum _Mode_Bitremal : Byte
     Disabled,
     Rb,
     Al,
-    Ot
+    Ot,
+    Ot_Exist_RB
 }
 
 internal enum _Mode_Zeroflows : Byte

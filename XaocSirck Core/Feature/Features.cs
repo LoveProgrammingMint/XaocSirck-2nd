@@ -18,20 +18,6 @@ internal struct FeaturesStruct
     public IntPtr Zeroflow;
 }
 
-internal struct FeaturesStruct_Cache
-{
-    public IntPtr RB;
-    public const Int32 RB_L = 16384;
-    public IntPtr AL;
-    public const Int32 AL_L = 512;
-    public IntPtr IT;
-    public const Int32 IT_L = 417;
-    public IntPtr EM;
-    public const Int32 EM_L = 256;
-    public IntPtr Zeroflow;
-    public const Int32 Zeroflows_L = 256;
-}
-
 internal sealed unsafe class Features
 {
     private EngineMode mode;
@@ -124,6 +110,20 @@ internal sealed unsafe class Features
                 EME.Engineer();
                 features.EM = EME.GetResult();
                 break;
+            case _Mode_Bitremal.Ot_Exist_RB:
+                ALO.Clear();
+                ALO.Obtain();
+                ALE.Clear();
+                ALE.Set(ALO.GetResult());
+                ALE.Extract();
+                features.AL = ALE.GetResult();
+                ITO.Clear();
+                ITO.Obtain();
+                features.IT = ITO.GetResult();
+                EME.Clear();
+                EME.Engineer();
+                features.EM = EME.GetResult();
+                break;
         }
 
         switch (mode.Zeroflow)
@@ -141,9 +141,9 @@ internal sealed unsafe class Features
         return features;
     }
 
-    public FeaturesStruct_Cache Execute_Cache()
+    public FeaturesStruct Execute_Cache()
     {
-        FeaturesStruct_Cache features = new();
+        FeaturesStruct features = new();
 
         RBO.Clear();
         RBO.Obtain();
