@@ -4,6 +4,13 @@
 #include "Base.hpp"
 #include <winhttp.h>
 
+struct CommunityReportEntry
+{
+    String Sha256;
+    String Path;
+    String CreatedAt;
+};
+
 class Communication
 {
 public:
@@ -15,6 +22,10 @@ public:
     Byte CacheQuery(const Api::Pack& pack);
     String UpdateVersion(const Api::Pack& pack);
     std::vector<Byte> UpdateDownload(const Api::Pack& pack);
+    Boolean Report(const Api::Pack& pack);
+    std::vector<CommunityReportEntry> CommunityGetAll(const Api::Pack& pack);
+    String CommunityGetAllJson(const Api::Pack& pack);
+    Boolean Annotation(const Api::Pack& pack);
 
 private:
     class WinHttpHandle
@@ -44,6 +55,7 @@ private:
     void EnsureSession();
     void EnsureConnect();
     std::vector<Byte> ReadResponseBody(const Api::Pack& pack);
+    Boolean ReadResponseBody(const Api::Pack& pack, std::vector<Byte>& outBody);
     Byte SendRequest(const Api::Pack& pack);
     static String Utf8ToWide(const std::vector<Byte>& value);
 };
@@ -61,4 +73,7 @@ extern "C"
     XAOCSIRCKONLINE_API void XsCommunication_FreeString(wchar_t* str);
     XAOCSIRCKONLINE_API uint8_t* XsCommunication_UpdateDownload(XsCommunication* instance, const XsApiPack* pack, uint64_t* outLength);
     XAOCSIRCKONLINE_API void XsCommunication_FreeBuffer(uint8_t* buffer);
+    XAOCSIRCKONLINE_API uint8_t XsCommunication_Report(XsCommunication* instance, const XsApiPack* pack);
+    XAOCSIRCKONLINE_API wchar_t* XsCommunication_CommunityGetAll(XsCommunication* instance, const XsApiPack* pack);
+    XAOCSIRCKONLINE_API uint8_t XsCommunication_Annotation(XsCommunication* instance, const XsApiPack* pack);
 }

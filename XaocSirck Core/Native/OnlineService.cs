@@ -32,6 +32,15 @@ internal static unsafe partial class OnlineService
     [LibraryImport(DllName)]
     internal static partial XsApiPack* XsApi_UpdateDownloadPack();
 
+    [LibraryImport(DllName, StringMarshalling = StringMarshalling.Utf16)]
+    internal static partial XsApiPack* XsApi_ReportPack(Byte* sha256, UInt64 length, String path);
+
+    [LibraryImport(DllName)]
+    internal static partial XsApiPack* XsApi_CommunityGetAllPack();
+
+    [LibraryImport(DllName)]
+    internal static partial XsApiPack* XsApi_AnnotationPack(Byte* sha256, UInt64 length, Int32 label);
+
     [LibraryImport(DllName)]
     internal static partial void XsApi_FreePack(XsApiPack* pack);
 
@@ -61,4 +70,13 @@ internal static unsafe partial class OnlineService
 
     [LibraryImport(DllName)]
     internal static partial void XsCommunication_FreeBuffer(Byte* buffer);
+
+    [LibraryImport(DllName)]
+    internal static partial Byte XsCommunication_Report(XsCommunication* instance, XsApiPack* pack);
+
+    [LibraryImport(DllName)]
+    internal static partial Char* XsCommunication_CommunityGetAll(XsCommunication* instance, XsApiPack* pack);
+
+    [LibraryImport(DllName)]
+    internal static partial Byte XsCommunication_Annotation(XsCommunication* instance, XsApiPack* pack);
 }

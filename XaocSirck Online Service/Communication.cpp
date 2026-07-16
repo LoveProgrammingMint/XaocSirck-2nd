@@ -157,17 +157,73 @@ Byte Communication::SendRequest(const Api::Pack& pack)
     return response.empty() ? static_cast<Byte>(2) : response[0];
 }
 
-std::vector<Byte> Communication::ReadResponseBody(const Api::Pack& pack)
+Boolean Communication::Report(const Api::Pack& pack)
 {
-    if (_serverHost.empty())
+    std::vector<Byte> response;
+    return ReadResponseBody(pack, response);
+}
+
+std::vector<CommunityReportEntry> Communication::CommunityGetAll(const Api::Pack& pack)
+{
+    std::vector<CommunityReportEntry> entries;
+    std::vector<Byte> response;
+    if (!ReadResponseBody(pack, response))
+    {
+        return entries;
+    }
+    try
+    {
+        nlohmann::json json = nlohmann::json::parse(response);
+        for (const auto& item : json)
+        {
+            CommunityReportEntry entry;
+            entry.Sha256 = Utf8ToWide(item.value("sha256", std::string()));
+            entry.Path = Utf8ToWide(item.value("path", std::string()));
+            entry.CreatedAt = Utf8ToWide(item.value("created_at", std::string()));
+            entries.push_back(std::move(entry));
+        }
+    }
+    catch (...)
+    {
+    }
+    return entries;
+}
+
+Boolean Communication::Annotation(const Api::Pack& pack)
+{
+    std::vector<Byte> response;
+    return ReadResponseBody(pack, response);
+}
+
+String Communication::CommunityGetAllJson(const Api::Pack& pack)
+{
+    std::vector<Byte> response;
+    if (!ReadResponseBody(pack, response))
     {
         return {};
+    }
+    return Utf8ToWide(response);
+}
+
+std::vector<Byte> Communication::ReadResponseBody(const Api::Pack& pack)
+{
+    std::vector<Byte> body;
+    ReadResponseBody(pack, body);
+    return body;
+}
+
+Boolean Communication::ReadResponseBody(const Api::Pack& pack, std::vector<Byte>& outBody)
+{
+    outBody.clear();
+    if (_serverHost.empty())
+    {
+        return false;
     }
 
     EnsureConnect();
     if (!_connect)
     {
-        return {};
+        return false;
     }
 
     std::wstring verb = pack.Method == Api::HttpMethod::Get ? L"GET" : L"POST";
@@ -187,7 +243,7 @@ std::vector<Byte> Communication::ReadResponseBody(const Api::Pack& pack)
         _useHttps ? WINHTTP_FLAG_SECURE : 0));
     if (!request)
     {
-        return {};
+        return false;
     }
 
     std::wstring headers;
@@ -207,7 +263,7 @@ std::vector<Byte> Communication::ReadResponseBody(const Api::Pack& pack)
         0);
     if (!sent || !WinHttpReceiveResponse(request.Get(), nullptr))
     {
-        return {};
+        return false;
     }
 
     DWORD statusCode = 0;
@@ -221,7 +277,7 @@ std::vector<Byte> Communication::ReadResponseBody(const Api::Pack& pack)
             WINHTTP_NO_HEADER_INDEX)
         || statusCode != HTTP_STATUS_OK)
     {
-        return {};
+        return false;
     }
 
     std::vector<Byte> response;
@@ -243,7 +299,8 @@ std::vector<Byte> Communication::ReadResponseBody(const Api::Pack& pack)
         response.insert(response.end(), reinterpret_cast<Byte*>(buffer.data()), reinterpret_cast<Byte*>(buffer.data() + read));
     }
 
-    return response;
+    outBody = std::move(response);
+    return true;
 }
 
 String Communication::Utf8ToWide(const std::vector<Byte>& value)
@@ -407,4 +464,60 @@ extern "C" uint8_t* XsCommunication_UpdateDownload(XsCommunication* instance, co
 extern "C" void XsCommunication_FreeBuffer(uint8_t* buffer)
 {
     delete[] buffer;
+}
+
+extern "C" uint8_t XsCommunication_Report(XsCommunication* instance, const XsApiPack* pack)
+{
+    try
+    {
+        if (instance == nullptr)
+        {
+            return 0;
+        }
+        return instance->Instance.Report(ToCppPack(pack)) ? 1 : 0;
+    }
+    catch (...)
+    {
+        return 0;
+    }
+}
+
+extern "C" wchar_t* XsCommunication_CommunityGetAll(XsCommunication* instance, const XsApiPack* pack)
+{
+    try
+    {
+        if (instance == nullptr)
+        {
+            return nullptr;
+        }
+        String json = instance->Instance.CommunityGetAllJson(ToCppPack(pack));
+        if (json.empty())
+        {
+            return nullptr;
+        }
+        wchar_t* result = new wchar_t[json.length() + 1];
+        std::copy(json.begin(), json.end(), result);
+        result[json.length()] = L'\0';
+        return result;
+    }
+    catch (...)
+    {
+        return nullptr;
+    }
+}
+
+extern "C" uint8_t XsCommunication_Annotation(XsCommunication* instance, const XsApiPack* pack)
+{
+    try
+    {
+        if (instance == nullptr)
+        {
+            return 0;
+        }
+        return instance->Instance.Annotation(ToCppPack(pack)) ? 1 : 0;
+    }
+    catch (...)
+    {
+        return 0;
+    }
 }
