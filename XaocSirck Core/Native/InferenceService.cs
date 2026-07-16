@@ -17,10 +17,37 @@ internal static unsafe partial class InferenceService
     internal static partial void XaocSirckSessionManagementLoad(IntPtr handle);
 
     [LibraryImport(DllName, StringMarshalling = StringMarshalling.Utf16)]
+    internal static partial void XaocSirckSessionManagementLoadDirectory(IntPtr handle, String directory);
+
+    [LibraryImport(DllName, StringMarshalling = StringMarshalling.Utf16)]
+    internal static partial void XaocSirckSessionManagementLoadModel(IntPtr handle, String name, String path);
+
+    [LibraryImport(DllName, StringMarshalling = StringMarshalling.Utf16)]
+    internal static partial Int32 XaocSirckSessionManagementHasModel(IntPtr handle, String name);
+
+    [LibraryImport(DllName, StringMarshalling = StringMarshalling.Utf16)]
     internal static partial IntPtr XaocSirckSessionManagementGet(IntPtr handle, String modelName);
 
     [LibraryImport(DllName, StringMarshalling = StringMarshalling.Utf16)]
     internal static partial void XaocSirckSessionManagementSwitchDevice(IntPtr handle, String deviceName);
+
+    [LibraryImport(DllName)]
+    internal static partial Int32 XaocSirckSessionManagementGetInputName(IntPtr session, out Byte* outName);
+
+    [LibraryImport(DllName)]
+    internal static partial Int32 XaocSirckSessionManagementGetOutputName(IntPtr session, out Byte* outName);
+
+    [LibraryImport(DllName)]
+    internal static partial void XaocSirckSessionManagementFreeName(Byte* name);
+
+    [LibraryImport(DllName)]
+    internal static partial Int64* XaocSirckSessionManagementGetInputShape(IntPtr session, out Int64 outRank);
+
+    [LibraryImport(DllName)]
+    internal static partial Int64* XaocSirckSessionManagementGetOutputShape(IntPtr session, out Int64 outRank);
+
+    [LibraryImport(DllName)]
+    internal static partial void XaocSirckSessionManagementFreeShape(Int64* shape);
 
     [LibraryImport(DllName)]
     internal static partial IntPtr XaocSirckSessionInferenceCreate();
@@ -39,6 +66,15 @@ internal static unsafe partial class InferenceService
 
     [LibraryImport(DllName, StringMarshalling = StringMarshalling.Utf8)]
     internal static partial void XaocSirckSessionInferenceSetOutput(IntPtr handle, String name);
+
+    [LibraryImport(DllName)]
+    internal static partial Single* XaocSirckSessionInferenceGetOutputData(IntPtr tensor, out Int64 outLength);
+
+    [LibraryImport(DllName)]
+    internal static partial Int64* XaocSirckSessionInferenceGetOutputShape(IntPtr tensor, out Int64 outRank);
+
+    [LibraryImport(DllName)]
+    internal static partial void XaocSirckSessionInferenceFreeShape(Int64* shape);
 
     [LibraryImport(DllName)]
     internal static partial void XaocSirckAlgorithmSoftmax(Single* input, Int64 length, Single* output);

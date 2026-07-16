@@ -113,12 +113,13 @@ internal sealed unsafe class AssemblyListObtain : IFeatureObtain
         Int32[] encoded = _bpe.Encode(rawTokens);
         if (encoded.Length == 0) return;
 
-        Int32 totalSize = _compressedTokenCount * sizeof(Int32);
+        Int32 totalSize = sizeof(Int32) + _compressedTokenCount * sizeof(Int32);
         _resultPtr = (IntPtr)NativeMemory.AlignedAlloc((UIntPtr)totalSize, 64);
         NativeMemory.Clear((void*)_resultPtr, (UIntPtr)totalSize);
 
+        *(Int32*)_resultPtr = totalSize;
         Int32 copyLen = Math.Min(encoded.Length, _compressedTokenCount);
-        Int32* idPtr = (Int32*)_resultPtr;
+        Int32* idPtr = (Int32*)_resultPtr + 1;
         for (Int32 i = 0; i < copyLen; i++)
             idPtr[i] = encoded[i];
     }
@@ -181,7 +182,7 @@ internal sealed unsafe class AssemblyListObtain : IFeatureObtain
 
 internal sealed class BpeEncoder
 {
-    private readonly String _vocabPath = Path.Combine(AppContext.BaseDirectory, "XaocSirck", "AssemblyList", "platforms_mnemonics_vocab.bin");
+    private readonly String _vocabPath = Path.Combine(App.RuntimeDirectory, "AssemblyList", "platforms_mnemonics_vocab.bin");
 
     private Dictionary<String, Int32>? _baseTokenToId;
     private List<(Int32 LeftId, Int32 RightId)>? _mergeRules;

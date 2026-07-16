@@ -76,3 +76,53 @@ void SessionInference::ValidateDevice(const String& deviceName)
         throw std::invalid_argument("Unsupported device name");
     }
 }
+
+const Single* SessionInference::GetTensorData(Ort::Value* tensor, Int64& outLength)
+{
+    if (tensor == nullptr)
+    {
+        outLength = 0;
+        return nullptr;
+    }
+
+    std::vector<Int64> shape = GetTensorShape(tensor);
+    outLength = ShapeProduct(shape);
+
+    try
+    {
+        return tensor->GetTensorMutableData<Single>();
+    }
+    catch (...)
+    {
+        outLength = 0;
+        return nullptr;
+    }
+}
+
+std::vector<Int64> SessionInference::GetTensorShape(Ort::Value* tensor)
+{
+    if (tensor == nullptr)
+    {
+        return {};
+    }
+
+    try
+    {
+        Ort::TensorTypeAndShapeInfo info = tensor->GetTensorTypeAndShapeInfo();
+        return info.GetShape();
+    }
+    catch (...)
+    {
+        return {};
+    }
+}
+
+Int64 SessionInference::ShapeProduct(const std::vector<Int64>& shape)
+{
+    Int64 product = 1;
+    for (Int64 dimension : shape)
+    {
+        product *= dimension;
+    }
+    return product;
+}

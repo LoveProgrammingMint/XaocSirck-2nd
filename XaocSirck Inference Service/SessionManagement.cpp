@@ -19,7 +19,24 @@ SessionManagement::~SessionManagement()
 void SessionManagement::Load()
 {
     ReleaseSessions();
-    LoadSessions();
+    LoadSessions(DefaultDirectory);
+}
+
+void SessionManagement::Load(const String& directory)
+{
+    ReleaseSessions();
+    LoadSessions(directory);
+}
+
+void SessionManagement::LoadModel(const String& name, const String& path)
+{
+    auto session = std::make_unique<Ort::Session>(_env, path.c_str(), _sessionOptions);
+    _sessions[name] = std::move(session);
+}
+
+Boolean SessionManagement::HasModel(const String& name) const
+{
+    return _sessions.find(name) != _sessions.end();
 }
 
 Ort::Session* SessionManagement::Get(const String& modelName)
@@ -54,7 +71,6 @@ void SessionManagement::SwitchDevice(const String& deviceName)
     BuildSessionOptions(deviceName, deviceId);
     _currentDevice = deviceName;
     _currentDeviceId = deviceId;
-    LoadSessions();
 }
 
 void SessionManagement::BuildSessionOptions(const String& deviceName, Int32 deviceId)
@@ -66,9 +82,13 @@ void SessionManagement::BuildSessionOptions(const String& deviceName, Int32 devi
     }
 }
 
-void SessionManagement::LoadSessions()
+void SessionManagement::LoadSessions(const String& directory)
 {
-    const String modelDir = L"./XaocSirck/Models/";
+    String modelDir = directory;
+    if (!modelDir.empty() && modelDir.back() != L'/' && modelDir.back() != L'\\')
+    {
+        modelDir += L'/';
+    }
     const String searchPattern = modelDir + L"*.onnx";
 
     WIN32_FIND_DATAW findData;
@@ -106,4 +126,62 @@ void SessionManagement::LoadSessions()
 void SessionManagement::ReleaseSessions()
 {
     _sessions.clear();
+}
+
+void SessionManagement::GetModelInfo(Ort::Session* session, std::string& inputName, std::string& outputName)
+{
+    if (session == nullptr)
+    {
+        inputName.clear();
+        outputName.clear();
+        return;
+    }
+
+    Ort::AllocatorWithDefaultOptions allocator;
+    const size_t inputCount = session->GetInputCount();
+    const size_t outputCount = session->GetOutputCount();
+
+    if (inputCount > 0)
+    {
+        Ort::AllocatedStringPtr name = session->GetInputNameAllocated(0, allocator);
+        inputName = name.get() != nullptr ? name.get() : "";
+    }
+    else
+    {
+        inputName.clear();
+    }
+
+    if (outputCount > 0)
+    {
+        Ort::AllocatedStringPtr name = session->GetOutputNameAllocated(0, allocator);
+        outputName = name.get() != nullptr ? name.get() : "";
+    }
+    else
+    {
+        outputName.clear();
+    }
+}
+
+std::vector<Int64> SessionManagement::GetInputShape(Ort::Session* session)
+{
+    std::vector<Int64> result;
+    if (session == nullptr || session->GetInputCount() == 0)
+        return result;
+
+    Ort::TypeInfo typeInfo = session->GetInputTypeInfo(0);
+    auto tensorInfo = typeInfo.GetTensorTypeAndShapeInfo();
+    result = tensorInfo.GetShape();
+    return result;
+}
+
+std::vector<Int64> SessionManagement::GetOutputShape(Ort::Session* session)
+{
+    std::vector<Int64> result;
+    if (session == nullptr || session->GetOutputCount() == 0)
+        return result;
+
+    Ort::TypeInfo typeInfo = session->GetOutputTypeInfo(0);
+    auto tensorInfo = typeInfo.GetTensorTypeAndShapeInfo();
+    result = tensorInfo.GetShape();
+    return result;
 }

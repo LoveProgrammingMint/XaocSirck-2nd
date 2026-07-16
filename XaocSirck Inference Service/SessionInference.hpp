@@ -17,6 +17,9 @@ public:
     void SetInput(const std::string& name);
     void SetOutput(const std::string& name);
 
+    static const Single* GetTensorData(Ort::Value* tensor, Int64& outLength);
+    static std::vector<Int64> GetTensorShape(Ort::Value* tensor);
+
 private:
     std::unique_ptr<Ort::Value> _inputTensor;
     std::unique_ptr<Ort::Value> _outputTensor;
@@ -25,4 +28,5 @@ private:
     std::string _outputName;
 
     void ValidateDevice(const String& deviceName);
+    static Int64 ShapeProduct(const std::vector<Int64>& shape);
 };

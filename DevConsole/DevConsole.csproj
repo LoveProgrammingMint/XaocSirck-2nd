@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PublishAot>false</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XaocSirck Core\XaocSirck Core.csproj" />
+  </ItemGroup>
+
+  <Target Name="CopyNativeDlls" AfterTargets="Build">
+    <ItemGroup>
+      <NativeDll Include="..\XaocSirck Inference Service\x64\Release\XaocSirck Inference Service.dll" />
+      <NativeDll Include="..\XaocSirck Online Service\x64\Release\XaocSirck Online Service.dll" />
+      <NativeDll Include="D:\VCpkg\installed\x64-windows\bin\onnxruntime.dll" />
+      <NativeDll Include="D:\VCpkg\installed\x64-windows\bin\DirectML.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(NativeDll)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

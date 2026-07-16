@@ -6,9 +6,7 @@
   </Configurations>
   <Project Path="Charwolf/Charwolf.csproj" Id="c5b205f3-2881-48d0-95f9-55dd33fae514" />
   <Project Path="Updater/Updater.csproj" />
-  <Project Path="XaocSirck App/XaocSirck App.csproj" Id="efb36c86-281e-4b32-908b-b51a5e75ddd1" />
   <Project Path="XaocSirck Core/XaocSirck Core.csproj" />
   <Project Path="XaocSirck Inference Service/XaocSirck Inference Service.vcxproj" Id="104da7f4-8c97-4548-adc5-3b0f48c683d4" />
   <Project Path="XaocSirck Online Service/XaocSirck Online Service.vcxproj" Id="0b2420e1-c946-4f8a-a933-fa40a6012c76" />
-  <Project Path="XaocSirck2Service/XaocSirck2Service.csproj" Id="96dded79-f88c-4dac-aca0-924d637b33c7" />
 </Solution>

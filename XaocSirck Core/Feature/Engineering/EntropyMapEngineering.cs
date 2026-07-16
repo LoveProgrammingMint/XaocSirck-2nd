@@ -10,8 +10,9 @@ namespace XaocSirck_Core.Feature.Engineering;
 internal sealed unsafe class EntropyMapEngineering : IFeatureEngineering
 {
     private readonly Int32 _windowSize = 256;
+    private readonly Int32 _windowCount = 64;
     private readonly Int32 _totalBytes = 256 * 64;
-    private SharePool? _sharePool;
+    private Byte* _dataPtr = null;
     private IntPtr _resultPtr = IntPtr.Zero;
     private Boolean _disposed;
 
@@ -30,7 +31,7 @@ internal sealed unsafe class EntropyMapEngineering : IFeatureEngineering
         if (!_disposed)
         {
             Clear();
-            _sharePool = null;
+            _dataPtr = null;
             _disposed = true;
             GC.SuppressFinalize(this);
         }
@@ -39,7 +40,9 @@ internal sealed unsafe class EntropyMapEngineering : IFeatureEngineering
     public void Engineer()
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(EntropyMapEngineering));
-        Int32 outputLength = _windowSize;
+        if (_dataPtr == null)
+            return;
+        Int32 outputLength = _windowCount;
         IntPtr newPtr = Marshal.AllocHGlobal(sizeof(Single) * outputLength);
         try
         {
@@ -52,8 +55,7 @@ internal sealed unsafe class EntropyMapEngineering : IFeatureEngineering
                 Int32 currentWindowSize = Math.Min(_windowSize, _totalBytes - offset);
                 if (currentWindowSize <= 0)
                     break;
-                ArgumentNullException.ThrowIfNull(_sharePool, nameof(_sharePool));
-                Single entropy = CalculateShannonEntropy((Byte*)_sharePool.RawBytes + offset, currentWindowSize);
+                Single entropy = CalculateShannonEntropy(_dataPtr + offset, currentWindowSize);
                 outputSpan[w] = entropy / 8.0f;
             }
             _resultPtr = newPtr;
@@ -93,8 +95,8 @@ internal sealed unsafe class EntropyMapEngineering : IFeatureEngineering
     public void Set(Object? inputData)
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(EntropyMapEngineering));
-        if (inputData is not SharePool pool)
-            throw new ArgumentException("Input data must be a SharePool instance.", nameof(inputData));
-        _sharePool = pool;
+        if (inputData is not IntPtr ptr)
+            throw new ArgumentException("Input data must be an IntPtr pointer.", nameof(inputData));
+        _dataPtr = (Byte*)ptr + sizeof(Int32);
     }
 }

@@ -16,7 +16,7 @@ internal sealed unsafe class RawByteExtraction : IFeatureExtraction
 
     public RawByteExtraction()
     {
-        String EmbeddingPath = Path.Combine(AppContext.BaseDirectory, "XaocSirck", "Embeddings", "RawByte", "embedding_static.bin");
+        String EmbeddingPath = Path.Combine(App.RuntimeDirectory, "Embeddings", "RawByte", "embedding_static.bin");
         if (File.Exists(EmbeddingPath))
         {
             Byte[] Data = File.ReadAllBytes(EmbeddingPath);
@@ -32,6 +32,8 @@ internal sealed unsafe class RawByteExtraction : IFeatureExtraction
     public void Extract()
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(RawByteExtraction));
+        if (_inputData == null)
+            return;
         IntPtr newPtr = Marshal.AllocHGlobal(sizeof(Single) * 131072);
         try
         {

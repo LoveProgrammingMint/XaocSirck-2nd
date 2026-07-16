@@ -10,6 +10,7 @@ namespace XaocSirck_Core.Feature.Extraction;
 internal sealed unsafe class AssemblyListExtraction : IFeatureExtraction
 {
     private readonly Int32 _embeddingDim = 192;
+    private readonly Int32 _compressedTokenCount = 512;
     private readonly Dictionary<String, Int32> _tokenToId;
     private readonly Single[] _embeddingTable;
     private readonly Int32 _vocabSize;
@@ -19,10 +20,10 @@ internal sealed unsafe class AssemblyListExtraction : IFeatureExtraction
 
     public AssemblyListExtraction()
     {
-        String vocabPath = Path.Combine(AppContext.BaseDirectory, "XaocSirck", "AssemblyList", "platforms_mnemonics_vocab.bin");
+        String vocabPath = Path.Combine(App.RuntimeDirectory, "AssemblyList", "platforms_mnemonics_vocab.bin");
         (_tokenToId, _vocabSize) = LoadBpeVocab(vocabPath);
 
-        String embedPath = Path.Combine(AppContext.BaseDirectory, "XaocSirck", "Embeddings", "AssemblyList", "embedding_static.bin");
+        String embedPath = Path.Combine(App.RuntimeDirectory, "Embeddings", "AssemblyList", "embedding_static.bin");
         if (!File.Exists(embedPath))
             throw new FileNotFoundException($"Embedding file not found: {embedPath}");
         Byte[] embedData = File.ReadAllBytes(embedPath);
@@ -75,6 +76,8 @@ internal sealed unsafe class AssemblyListExtraction : IFeatureExtraction
 
     public void Extract()
     {
+        if (_inputData == null)
+            return;
         Int32 totalBytes = *_inputData;
         Int32 payloadBytes = totalBytes - sizeof(Int32);
         if (payloadBytes <= 0)
@@ -86,14 +89,14 @@ internal sealed unsafe class AssemblyListExtraction : IFeatureExtraction
 
         Int32* idPtr = _inputData + 1;
 
-        Int32 outputLength = _embeddingDim * _embeddingDim;
+        Int32 outputLength = _compressedTokenCount * _embeddingDim;
         IntPtr newPtr = (IntPtr)NativeMemory.AlignedAlloc((UIntPtr)(sizeof(Single) * outputLength), 64);
         try
         {
             Span<Single> outputSpan = new(newPtr.ToPointer(), outputLength);
             outputSpan.Clear();
 
-            Int32 limit = Math.Min(tokenCount, _embeddingDim);
+            Int32 limit = Math.Min(tokenCount, _compressedTokenCount);
             for (Int32 t = 0; t < limit; t++)
             {
                 Int32 tokenId = idPtr[t];

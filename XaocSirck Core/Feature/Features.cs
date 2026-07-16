@@ -1,3 +1,4 @@
+using PeNet;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,7 +19,7 @@ internal struct FeaturesStruct
     public IntPtr Zeroflow;
 }
 
-internal sealed unsafe class Features
+internal sealed unsafe class Features : IDisposable
 {
     private EngineMode mode;
     private readonly SharePool BSP = new();
@@ -52,7 +53,6 @@ internal sealed unsafe class Features
         RBO.Set(BSP);
         ALO.Set(BSP);
         ITO.Set(BSP);
-        EME.Set(BSP);
 
         ZBH = new ByteHistogram(ZSF);
         ZBP = new BytePatterns(ZSF);
@@ -93,6 +93,7 @@ internal sealed unsafe class Features
             case _Mode_Bitremal.Ot:
                 RBO.Clear();
                 RBO.Obtain();
+                BSP.RawBytes = RBO.GetResult();
                 RBE.Clear();
                 RBE.Set(RBO.GetResult());
                 RBE.Extract();
@@ -107,6 +108,7 @@ internal sealed unsafe class Features
                 ITO.Obtain();
                 features.IT = ITO.GetResult();
                 EME.Clear();
+                EME.Set(RBO.GetResult());
                 EME.Engineer();
                 features.EM = EME.GetResult();
                 break;
@@ -121,6 +123,7 @@ internal sealed unsafe class Features
                 ITO.Obtain();
                 features.IT = ITO.GetResult();
                 EME.Clear();
+                EME.Set(RBO.GetResult());
                 EME.Engineer();
                 features.EM = EME.GetResult();
                 break;
@@ -147,6 +150,7 @@ internal sealed unsafe class Features
 
         RBO.Clear();
         RBO.Obtain();
+        BSP.RawBytes = RBO.GetResult();
         features.RB = RBO.GetResult();
         ALO.Clear();
         ALO.Obtain();
@@ -155,6 +159,7 @@ internal sealed unsafe class Features
         ITO.Obtain();
         features.IT = ITO.GetResult();
         EME.Clear();
+        EME.Set(RBO.GetResult());
         EME.Engineer();
         features.EM = EME.GetResult();
 
@@ -169,6 +174,35 @@ internal sealed unsafe class Features
     public void Set(String path, EngineMode newmode)
     {
         BSP.FilePath = path;
+        try
+        {
+            BSP.Pe = new PeFile(path);
+        }
+        catch
+        {
+            BSP.Pe = null;
+        }
         mode = newmode;
+    }
+
+    public void Dispose()
+    {
+        RBO.Dispose();
+        ALO.Dispose();
+        ITO.Dispose();
+        RBE.Dispose();
+        ALE.Dispose();
+        EME.Dispose();
+        ZSF.Dispose();
+        ZBH?.Dispose();
+        ZBP?.Dispose();
+        ZBR?.Dispose();
+        ZBS?.Dispose();
+        ZBE?.Dispose();
+        ZBL?.Dispose();
+        ZPM?.Dispose();
+        ZPE?.Dispose();
+        ZPS?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
