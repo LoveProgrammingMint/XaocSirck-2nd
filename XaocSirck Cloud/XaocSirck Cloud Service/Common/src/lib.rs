@@ -9,6 +9,7 @@ pub const CACHE_ROUTE_PREFIX: &str = "/api/cache";
 pub const SYSTEM_ROUTE_PREFIX: &str = "/api/system";
 pub const SIGNATURE_ROUTE_PREFIX: &str = "/api/signature";
 pub const UPDATE_ROUTE_PREFIX: &str = "/api/update";
+pub const COMMUNITY_ROUTE_PREFIX: &str = "/api/community";
 
 #[derive(Deserialize, Clone)]
 pub struct Settings {

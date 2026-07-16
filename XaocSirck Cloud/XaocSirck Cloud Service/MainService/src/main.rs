@@ -1,6 +1,6 @@
 use axum::{middleware, routing::delete, routing::get, Extension, Router};
 use cache_service::create_state_with_pool;
-use common::{Settings, CACHE_ROUTE_PREFIX, CACHE_SERVICE_BIND, SIGNATURE_ROUTE_PREFIX, SYSTEM_ROUTE_PREFIX, UPDATE_ROUTE_PREFIX};
+use common::{Settings, CACHE_ROUTE_PREFIX, CACHE_SERVICE_BIND, COMMUNITY_ROUTE_PREFIX, SIGNATURE_ROUTE_PREFIX, SYSTEM_ROUTE_PREFIX, UPDATE_ROUTE_PREFIX};
 use signature_service::create_state as create_signature_state;
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -41,6 +41,7 @@ async fn main() {
     let cache_state = create_state_with_pool(pool.clone(), settings.jwt_public_key.clone()).await;
     let signature_state = create_signature_state(pool.clone(), settings.jwt_public_key.clone()).await;
     let update_state = update_service::create_state();
+    let community_state = community_service::create_state(pool.clone(), cache_state.clone()).await;
     let system_state = system::init(pool).await.expect("system init failed");
 
     spawn_hot_cache_builder(cache_state.clone());
@@ -55,6 +56,10 @@ async fn main() {
     );
     let update_router = update_service::public_router(update_state.clone()).merge(
         update_service::admin_router(update_state)
+            .layer(middleware::from_fn(auth::require_auth)),
+    );
+    let community_router = community_service::public_router(community_state.clone()).merge(
+        community_service::admin_router(community_state)
             .layer(middleware::from_fn(auth::require_auth)),
     );
     let system_router = Router::new()
@@ -78,6 +83,7 @@ async fn main() {
         .nest(CACHE_ROUTE_PREFIX, cache_router)
         .nest(SIGNATURE_ROUTE_PREFIX, signature_router)
         .nest(UPDATE_ROUTE_PREFIX, update_router)
+        .nest(COMMUNITY_ROUTE_PREFIX, community_router)
         .nest(SYSTEM_ROUTE_PREFIX, system_router)
         .layer(middleware::from_fn(system::stats::log_request))
         .layer(middleware::from_fn(system::stats::check_blacklist))
