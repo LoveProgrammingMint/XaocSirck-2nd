@@ -12,6 +12,8 @@ public sealed unsafe class UpdateClient : IDisposable
     private String _serverAddress = String.Empty;
     private Boolean _disposed;
 
+    public Boolean IsConnected => _instance != null && _serverAddress.Length > 0;
+
     public UpdateClient(String? packagePath = null, String? extractPath = null, String? updaterPath = null)
     {
         _packagePath = packagePath ?? "./update_temp/update_pkg.izxs";

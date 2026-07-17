@@ -4,7 +4,7 @@ using System.Text;
 
 namespace XaocSirck_Core.Interface.Engine;
 
-internal enum _Mode_Bitremal : Byte
+public enum _Mode_Bitremal : Byte
 {
     Disabled,
     Rb,
@@ -13,39 +13,39 @@ internal enum _Mode_Bitremal : Byte
     Ot_Exist_RB
 }
 
-internal enum _Mode_Zeroflows : Byte
+public enum _Mode_Zeroflows : Byte
 {
     Disabled,
     Zf
 }
 
-internal enum _Mode_Signature : Byte
+public enum _Mode_Signature : Byte
 {
     Disabled,
     Loose,
     Strict
 }
 
-internal enum _Mode_Documentation : Byte
+public enum _Mode_Documentation : Byte
 {
     Disabled,
     DocVBA
 }
 
-internal enum _Mode_Shell : Byte
+public enum _Mode_Shell : Byte
 {
     Disabled,
     Block,
     Suspicious
 }
 
-internal enum _Mode_Archive : Byte
+public enum _Mode_Archive : Byte
 {
     Disabled,
     Check
 }
 
-internal struct _Mode_Engines
+public struct _Mode_Engines
 {
     public _Mode_Signature Signature;
     public _Mode_Archive Archive;
@@ -53,7 +53,7 @@ internal struct _Mode_Engines
     public _Mode_Shell Shell;
 }
 
-internal enum _Mode_Charwolf : Byte
+public enum _Mode_Charwolf : Byte
 {
     Disabled,
     Core,
@@ -61,7 +61,7 @@ internal enum _Mode_Charwolf : Byte
     Fulled
 }
 
-internal struct EngineMode
+public struct EngineMode
 {
     public _Mode_Bitremal Bitremal;
     public _Mode_Zeroflows Zeroflow;

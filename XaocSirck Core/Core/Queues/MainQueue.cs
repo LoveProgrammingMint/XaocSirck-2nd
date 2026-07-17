@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using XaocSirck_Core.Cloud;
+using XaocSirck_Core.Engine;
 using XaocSirck_Core.Feature;
 using XaocSirck_Core.Inference;
 using XaocSirck_Core.Interface.Engine;
@@ -11,6 +12,7 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
     private readonly CloudClient _cloud;
     private readonly BitremalInferenceService? _inference;
     private readonly ZeroflowsInferenceService? _zeroflows;
+    private readonly EngineSettings _settings;
     private readonly Features _features;
     private readonly List<ScanResult> _results = new();
     private Thread? _producer;
@@ -20,15 +22,20 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
     private Int32 _maxFiles;
     private Boolean _disposed;
 
-    public MainQueue(CloudClient cloud, BitremalInferenceService inference, Int32 capacity = 1024) : this(cloud, inference, null, capacity)
+    public MainQueue(CloudClient cloud, BitremalInferenceService inference, Int32 capacity = 1024) : this(cloud, inference, null, new EngineSettings { QueueCapacity = capacity }, capacity)
     {
     }
 
-    public MainQueue(CloudClient cloud, BitremalInferenceService? inference, ZeroflowsInferenceService? zeroflows, Int32 capacity = 1024) : base(capacity)
+    public MainQueue(CloudClient cloud, BitremalInferenceService? inference, ZeroflowsInferenceService? zeroflows, Int32 capacity = 1024) : this(cloud, inference, zeroflows, new EngineSettings { QueueCapacity = capacity }, capacity)
+    {
+    }
+
+    public MainQueue(CloudClient cloud, BitremalInferenceService? inference, ZeroflowsInferenceService? zeroflows, EngineSettings settings, Int32 capacity = 1024) : base(capacity)
     {
         _cloud = cloud;
         _inference = inference;
         _zeroflows = zeroflows;
+        _settings = settings ?? new EngineSettings();
         _features = new Features();
     }
 
@@ -80,6 +87,8 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
     private void ProducerLoop(String path, Boolean recursive)
     {
         SearchOption option = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+        Boolean filterByExtension = _settings.FilterByExtension;
+        String[] targetExtensions = _settings.TargetExtensions;
         Int32 count = 0;
         try
         {
@@ -89,6 +98,8 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
                     break;
                 if (_maxFiles > 0 && count >= _maxFiles)
                     break;
+                if (filterByExtension && !IsTargetExtension(file, targetExtensions))
+                    continue;
 
                 TaskItem item = new(file);
                 while (!TryEnqueue(item))
@@ -135,7 +146,7 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
         try
         {
             CloudCacheResult cacheResult = CloudCacheResult.Error;
-            if (_cloud.IsConnected)
+            if (_settings.EnableCloudCache && _cloud.IsConnected)
             {
                 Byte[] sha256 = ComputeSha256(item.FilePath);
                 cacheResult = _cloud.QueryCache(sha256);
@@ -195,6 +206,15 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
         return SHA256.HashData(stream);
     }
 
+    private static Boolean IsTargetExtension(String filePath, String[] targetExtensions)
+    {
+        String ext = Path.GetExtension(filePath);
+        for (Int32 i = 0; i < targetExtensions.Length; i++)
+            if (String.Equals(ext, targetExtensions[i], StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
+    }
+
     internal sealed class TaskItem
     {
         public String FilePath { get; }
@@ -207,7 +227,7 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
     }
 }
 
-internal sealed class ScanResult
+public sealed class ScanResult
 {
     public String FilePath { get; }
     public CloudCacheResult CacheResult { get; }

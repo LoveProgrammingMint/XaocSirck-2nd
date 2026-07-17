@@ -2,8 +2,10 @@ using System.Diagnostics;
 using Gee.External.Capstone;
 using Gee.External.Capstone.X86;
 using PeNet;
+using XaocSirck_Core;
 using XaocSirck_Core.Cloud;
 using XaocSirck_Core.Core.Queues;
+using XaocSirck_Core.Engine;
 using XaocSirck_Core.Feature;
 using XaocSirck_Core.Feature.Obtain;
 using XaocSirck_Core.Inference;
@@ -41,6 +43,9 @@ internal class Entry
             String modelsDirectory = FindModelsDirectory();
             WriteLine($"Models directory: {modelsDirectory}");
 
+            TestSettings();
+            WriteLine();
+
             TestCloud(serverAddress);
             WriteLine();
 
@@ -51,7 +56,10 @@ internal class Entry
             WriteLine();
 
             TestScan(scanPath, modelsDirectory, maxFiles);
-        WriteLine();
+            WriteLine();
+
+            TestEngine(scanPath, maxFiles);
+            WriteLine();
 
             WriteLine("DevConsole integration test completed successfully");
         }
@@ -117,6 +125,51 @@ internal class Entry
         WriteLine("[Dispose] MainQueue disposed without error");
     }
 
+    static void TestSettings()
+    {
+        WriteLine("[Settings] Testing configuration");
+        String configPath = Path.Combine(AppContext.BaseDirectory, "dev_console_config.json");
+        App.Settings.Load(configPath);
+        WriteLine($"[Settings] Loaded from {configPath}");
+        WriteLine($"[Settings] Version: {App.Settings.Config.Version}");
+        WriteLine($"[Settings] ParticipateInCoConstruction: {App.Settings.Config.ParticipateInCoConstruction}");
+        WriteLine($"[Settings] ModelsDirectory: {App.Settings.Config.ModelsDirectory}");
+        WriteLine($"[Settings] EnableGpu: {App.Settings.Config.EnableGpu}");
+        WriteLine($"[Settings] FilterByExtension: {App.Settings.Config.FilterByExtension}");
+        WriteLine($"[Settings] TargetExtensions: [{String.Join(", ", App.Settings.Config.TargetExtensions)}]");
+        WriteLine($"[Settings] BitremalMode: {App.Settings.Config.BitremalMode}");
+        WriteLine($"[Settings] ZeroflowMode: {App.Settings.Config.ZeroflowMode}");
+        WriteLine($"[Settings] SignatureMode: {App.Settings.Config.SignatureMode}");
+        WriteLine($"[Settings] ArchiveMode: {App.Settings.Config.ArchiveMode}");
+        WriteLine($"[Settings] DocumentationMode: {App.Settings.Config.DocumentationMode}");
+        WriteLine($"[Settings] ShellMode: {App.Settings.Config.ShellMode}");
+        WriteLine($"[Settings] CharwolfMode: {App.Settings.Config.CharwolfMode}");
+
+        App.Settings.Update(s =>
+        {
+            s.Version = "1.0.1";
+            s.ParticipateInCoConstruction = true;
+            s.EnableGpu = false;
+            s.BitremalMode = _Mode_Bitremal.Ot;
+            s.ZeroflowMode = _Mode_Zeroflows.Zf;
+            s.SignatureMode = _Mode_Signature.Strict;
+            s.ArchiveMode = _Mode_Archive.Check;
+            s.DocumentationMode = _Mode_Documentation.DocVBA;
+            s.ShellMode = _Mode_Shell.Suspicious;
+            s.CharwolfMode = _Mode_Charwolf.Core;
+            s.FilterByExtension = true;
+            s.MaxFiles = 8;
+            s.QueueCapacity = 64;
+        });
+        WriteLine("[Settings] Updated and saved");
+
+        App.Settings.ReLoad();
+        WriteLine($"[Settings] After reload Version: {App.Settings.Config.Version}, ParticipateInCoConstruction: {App.Settings.Config.ParticipateInCoConstruction}");
+        WriteLine($"[Settings] After reload BitremalMode: {App.Settings.Config.BitremalMode}, ZeroflowMode: {App.Settings.Config.ZeroflowMode}, SignatureMode: {App.Settings.Config.SignatureMode}");
+        WriteLine($"[Settings] After reload ArchiveMode: {App.Settings.Config.ArchiveMode}, DocumentationMode: {App.Settings.Config.DocumentationMode}, ShellMode: {App.Settings.Config.ShellMode}, CharwolfMode: {App.Settings.Config.CharwolfMode}");
+        WriteLine($"[Settings] After reload MaxFiles: {App.Settings.Config.MaxFiles}, QueueCapacity: {App.Settings.Config.QueueCapacity}");
+    }
+
     static void TestCloud(String? serverAddress)
     {
         using CloudClient cloud = new();
@@ -176,7 +229,7 @@ internal class Entry
                 foreach (var s in pe.ImageSectionHeaders)
                     WriteLine($"[Inference]   Section: {s.Name}, rawSize={s.SizeOfRawData}, chars={Convert.ToUInt32(s.Characteristics):X8}");
 
-            var textSection = Array.Find(pe.ImageSectionHeaders, s => s.Name == ".text");
+            var textSection = Array.Find(pe.ImageSectionHeaders!, s => s.Name == ".text");
             if (textSection != null)
             {
                 Byte[] data = new Byte[textSection.SizeOfRawData];
@@ -268,8 +321,9 @@ internal class Entry
             return;
         }
 
-        using BitremalInferenceService inference = new();
-        using ZeroflowsInferenceService zeroflows = new();
+        EngineSettings settings = App.Settings.Config;
+        using BitremalInferenceService inference = new(settings.EnableGpu);
+        using ZeroflowsInferenceService zeroflows = new(settings.EnableGpu);
         try
         {
             inference.Load(modelsDirectory);
@@ -295,10 +349,10 @@ internal class Entry
         }
 
         using CloudClient cloud = new();
-        using MainQueue queue = new(cloud, inference, zeroflows, capacity: 64);
+        using MainQueue queue = new(cloud, inference, zeroflows, settings, capacity: settings.QueueCapacity);
 
-        EngineMode mode = new() { Bitremal = _Mode_Bitremal.Ot, Zeroflow = _Mode_Zeroflows.Zf };
-        queue.Start(scanPath, mode, maxFiles: maxFiles);
+        EngineMode mode = new() { Bitremal = settings.BitremalMode, Zeroflow = settings.ZeroflowMode };
+        queue.Start(scanPath, mode, settings.Recursive, maxFiles);
 
         Stopwatch sw = Stopwatch.StartNew();
         queue.Wait();
@@ -318,6 +372,44 @@ internal class Entry
             String bitremal = result.BitremalProbabilities != null ? $"[{String.Join(", ", result.BitremalProbabilities)}]" : "null";
             String zf = result.ZeroflowsProbabilities != null ? $"[{String.Join(", ", result.ZeroflowsProbabilities)}]" : "null";
             WriteLine($"[Scan]   {result.FilePath} -> cache={result.CacheResult}, malicious={result.IsMalicious}, bitremal={bitremal}, zeroflows={zf}");
+        }
+    }
+
+    static void TestEngine(String scanPath, Int32 maxFiles)
+    {
+        if (!Directory.Exists(scanPath))
+        {
+            WriteLine($"[Engine] Directory not found: {scanPath}");
+            return;
+        }
+
+        WriteLine("[Engine] Testing Engine pipeline");
+        using Engine engine = new();
+
+        engine.Initialize();
+        WriteLine($"[Engine] Initialized, Bitremal loaded: {engine.IsBitremalLoaded}, Zeroflows loaded: {engine.IsZeroflowsLoaded}");
+
+        String? version = engine.CheckForUpdate();
+        WriteLine($"[Engine] Update version: {version ?? "none/disabled"}");
+
+        Stopwatch sw = Stopwatch.StartNew();
+        ScanResult[] results = engine.Scan(scanPath, maxFiles: maxFiles);
+        sw.Stop();
+
+        WriteLine($"[Engine] Scan completed in {sw.Elapsed.TotalMilliseconds:F3} ms");
+        WriteLine($"[Engine] Results: {results.Length}");
+        Int32 malicious = 0;
+        foreach (ScanResult result in results)
+        {
+            if (result.IsMalicious)
+                malicious++;
+        }
+        WriteLine($"[Engine] Malicious: {malicious}");
+        foreach (ScanResult result in results.Take(10))
+        {
+            String bitremal = result.BitremalProbabilities != null ? $"[{String.Join(", ", result.BitremalProbabilities)}]" : "null";
+            String zf = result.ZeroflowsProbabilities != null ? $"[{String.Join(", ", result.ZeroflowsProbabilities)}]" : "null";
+            WriteLine($"[Engine]   {result.FilePath} -> cache={result.CacheResult}, malicious={result.IsMalicious}, bitremal={bitremal}, zeroflows={zf}");
         }
     }
 }
