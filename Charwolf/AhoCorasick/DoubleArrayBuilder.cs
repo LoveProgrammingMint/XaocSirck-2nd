@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Charwolf.AhoCorasick;
 
-internal sealed class DoubleArrayResult
+public sealed class DoubleArrayResult
 {
     public Int16[] Base = null!;
     public Int16[] Check = null!;
@@ -15,7 +15,7 @@ internal sealed class DoubleArrayResult
     public Int32[] PatternLength = null!;
 }
 
-internal class DoubleArrayBuilder
+public class DoubleArrayBuilder
 {
 
     private readonly List<Int16> _base = [ 0 ];

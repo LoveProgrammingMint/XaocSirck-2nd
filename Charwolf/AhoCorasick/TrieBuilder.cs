@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Charwolf.AhoCorasick;
 
-internal sealed class TrieNode
+public sealed class TrieNode
 {
     public readonly Dictionary<Byte, TrieNode> Children = [];
     public TrieNode? Failure;
@@ -13,7 +13,7 @@ internal sealed class TrieNode
     public Boolean IsAllocated;
 }
 
-internal static class TrieBuilder
+public static class TrieBuilder
 {
     public static TrieNode Build(ReadOnlySpan<ReadOnlyMemory<Byte>> patterns)
     {

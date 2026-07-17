@@ -10,6 +10,7 @@ using XaocSirck_Core.Feature;
 using XaocSirck_Core.Feature.Obtain;
 using XaocSirck_Core.Inference;
 using XaocSirck_Core.Interface.Engine;
+using Charwolf.XSRule;
 
 namespace DevConsole;
 
@@ -59,6 +60,9 @@ internal class Entry
             WriteLine();
 
             TestEngine(scanPath, maxFiles);
+            WriteLine();
+
+            TestSignature("C:\\Windows\\System32\\notepad.exe");
             WriteLine();
 
             WriteLine("DevConsole integration test completed successfully");
@@ -410,6 +414,65 @@ internal class Entry
             String bitremal = result.BitremalProbabilities != null ? $"[{String.Join(", ", result.BitremalProbabilities)}]" : "null";
             String zf = result.ZeroflowsProbabilities != null ? $"[{String.Join(", ", result.ZeroflowsProbabilities)}]" : "null";
             WriteLine($"[Engine]   {result.FilePath} -> cache={result.CacheResult}, malicious={result.IsMalicious}, bitremal={bitremal}, zeroflows={zf}");
+        }
+    }
+
+    static void TestSignature(String filePath)
+    {
+        WriteLine($"[Signature] Testing XSRule signature engine on {filePath}");
+        if (!File.Exists(filePath))
+        {
+            WriteLine($"[Signature] File not found: {filePath}");
+            return;
+        }
+
+        String rulePath = Path.Combine(AppContext.BaseDirectory, "XSRule_Test.xsr");
+        if (!File.Exists(rulePath))
+        {
+            String repoPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "XSRule_Test.xsr");
+            if (File.Exists(repoPath))
+                rulePath = Path.GetFullPath(repoPath);
+        }
+
+        if (!File.Exists(rulePath))
+        {
+            WriteLine($"[Signature] Rule file not found: {rulePath}");
+            return;
+        }
+
+        String source = File.ReadAllText(rulePath);
+        XsRuleDocument document = new XsRuleParser(source).ParseDocument();
+        WriteLine($"[Signature] Parsed {document.Rules.Count} rules from reference file");
+
+        String testRule = """
+            define Notepad_Test {
+                string {
+                    "notepad"(head) Wildcard;
+                    "MZ"(head) Wildcard;
+                    "[4D 5A]"(head) Hex;
+                }
+                conditions {
+                    1 and 2 and 3
+                }
+            }
+            """;
+
+        XsRuleDocument testDocument = new XsRuleParser(testRule).ParseDocument();
+        WriteLine($"[Signature] Parsed {testDocument.Rules.Count} test rules, strings: {String.Join(", ", testDocument.Rules.Select(r => $"{r.Name}={r.Strings.Count}"))}");
+
+        using CompiledXsRuleDocument compiled = new XsRuleCompiler().Compile(testDocument);
+        using SignatureEngine engine = new(compiled);
+
+        Stopwatch sw = Stopwatch.StartNew();
+        IReadOnlyList<SignatureResult> results = engine.ScanFile(filePath);
+        sw.Stop();
+
+        WriteLine($"[Signature] Scan completed in {sw.Elapsed.TotalMilliseconds:F3} ms");
+        foreach (SignatureResult result in results)
+        {
+            WriteLine($"[Signature]   {result.RuleName}: matched={result.Matched}, hits={result.Matches.Count}");
+            foreach (SignatureMatch match in result.Matches.Take(5))
+                WriteLine($"[Signature]     string#{match.StringId}");
         }
     }
 }

@@ -11,6 +11,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\XaocSirck Core\XaocSirck Core.csproj" />
+    <Content Include="..\XSRule_Test.xsr" Link="XSRule_Test.xsr">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <Target Name="CopyNativeDlls" AfterTargets="Build">

@@ -7,14 +7,14 @@ using System.Runtime.InteropServices;
 namespace Charwolf.AhoCorasick;
 
 
-internal readonly struct AcMatch(Int32 patternId, Int32 start, Int32 end)
+public readonly struct AcMatch(Int32 patternId, Int32 start, Int32 end)
 {
     public readonly Int32 PatternId = patternId;
     public readonly Int32 StartOffset = start;
     public readonly Int32 EndOffset = end;
 }
 
-internal sealed unsafe class AcScanner : IDisposable
+public sealed unsafe class AcScanner : IDisposable
 {
     private readonly Int16* _base;
     private readonly Int16* _check;
