@@ -12,6 +12,7 @@ public sealed class Engine : IDisposable
     private readonly UpdateClient _update;
     private readonly BitremalInferenceService _bitremal;
     private readonly ZeroflowsInferenceService _zeroflows;
+    private readonly CharwolfEngineService _charwolf;
     private MainQueue? _queue;
     private Boolean _disposed;
     private Boolean _initialized;
@@ -23,6 +24,7 @@ public sealed class Engine : IDisposable
         _update = new UpdateClient();
         _bitremal = new BitremalInferenceService(_settings.EnableGpu);
         _zeroflows = new ZeroflowsInferenceService(_settings.EnableGpu);
+        _charwolf = new CharwolfEngineService();
     }
 
     public Settings Settings => _settings;
@@ -31,6 +33,7 @@ public sealed class Engine : IDisposable
     public Boolean IsInitialized => _initialized;
     public Boolean IsBitremalLoaded => _bitremal.IsLoaded;
     public Boolean IsZeroflowsLoaded => _zeroflows.IsLoaded;
+    public Boolean IsCharwolfLoaded => _charwolf.IsLoaded;
 
     public void Initialize()
     {
@@ -48,6 +51,15 @@ public sealed class Engine : IDisposable
         if (_settings.EnableCloudCache && !String.IsNullOrEmpty(_settings.CloudServerAddress))
         {
             try { _cloud.Connect(_settings.CloudServerAddress); } catch { }
+        }
+
+        if (_settings.CharwolfMode != _Mode_Charwolf.Disabled)
+        {
+            String rulesDirectory = Path.Combine(App.RuntimeDirectory, "Rules");
+            if (Directory.Exists(rulesDirectory))
+            {
+                try { _charwolf.LoadRules(rulesDirectory); } catch { }
+            }
         }
 
         _initialized = true;
@@ -116,7 +128,7 @@ public sealed class Engine : IDisposable
         Int32 files = maxFiles > 0 ? maxFiles : _settings.MaxFiles;
 
         _queue?.Dispose();
-        _queue = new MainQueue(_cloud, _bitremal, _zeroflows, _settings.Config, capacity);
+        _queue = new MainQueue(_cloud, _bitremal, _zeroflows, _charwolf, _settings.Config, capacity);
 
         _queue.StartAndWait(path, scanMode, _settings.Recursive, files);
         ScanResult[] results = [.. _queue.Results];
@@ -134,7 +146,7 @@ public sealed class Engine : IDisposable
         Int32 files = maxFiles > 0 ? maxFiles : _settings.MaxFiles;
 
         _queue?.Dispose();
-        _queue = new MainQueue(_cloud, _bitremal, _zeroflows, _settings.Config, capacity);
+        _queue = new MainQueue(_cloud, _bitremal, _zeroflows, _charwolf, _settings.Config, capacity);
 
         _queue.Start(path, scanMode, _settings.Recursive, files);
         using (cancellationToken.Register(() => _queue.Stop()))
@@ -160,6 +172,7 @@ public sealed class Engine : IDisposable
             _update.Dispose();
             _bitremal.Dispose();
             _zeroflows.Dispose();
+            _charwolf.Dispose();
             _disposed = true;
             GC.SuppressFinalize(this);
         }
@@ -173,6 +186,9 @@ public sealed class Engine : IDisposable
             Zeroflow = _settings.ZeroflowMode,
             Signature = _settings.SignatureMode,
             Charwolf = _settings.CharwolfMode,
+            Archive = _settings.ArchiveMode,
+            Documentation = _settings.DocumentationMode,
+            Shell = _settings.ShellMode,
             Engines = new _Mode_Engines
             {
                 Signature = _settings.SignatureMode,

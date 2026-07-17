@@ -62,7 +62,7 @@ internal class Entry
             TestEngine(scanPath, maxFiles);
             WriteLine();
 
-            TestSignature("C:\\Windows\\System32\\notepad.exe");
+            TestCharwolf("C:\\Windows\\System32\\notepad.exe");
             WriteLine();
 
             WriteLine("DevConsole integration test completed successfully");
@@ -375,7 +375,11 @@ internal class Entry
         {
             String bitremal = result.BitremalProbabilities != null ? $"[{String.Join(", ", result.BitremalProbabilities)}]" : "null";
             String zf = result.ZeroflowsProbabilities != null ? $"[{String.Join(", ", result.ZeroflowsProbabilities)}]" : "null";
-            WriteLine($"[Scan]   {result.FilePath} -> cache={result.CacheResult}, malicious={result.IsMalicious}, bitremal={bitremal}, zeroflows={zf}");
+            String sig = result.SignatureResult != null ? $"signed={result.SignatureResult.IsSigned}, trusted={result.SignatureResult.IsTrusted}, cloud={result.SignatureResult.CloudResult}" : "null";
+            String shell = result.ShellResult != null ? result.ShellResult.Hit.ToString() : "null";
+            String arch = result.ArchiveResult != null ? $"archive={result.ArchiveResult.IsArchive}, suspicious={result.ArchiveResult.SuspiciousEntryCount}" : "null";
+            String doc = result.DocumentationResult != null ? $"macro={result.DocumentationResult.HasMacro}" : "null";
+            WriteLine($"[Scan]   {result.FilePath} -> cache={result.CacheResult}, malicious={result.IsMalicious}, bitremal={bitremal}, zeroflows={zf}, signature={sig}, shell={shell}, archive={arch}, doc={doc}");
         }
     }
 
@@ -391,7 +395,7 @@ internal class Entry
         using Engine engine = new();
 
         engine.Initialize();
-        WriteLine($"[Engine] Initialized, Bitremal loaded: {engine.IsBitremalLoaded}, Zeroflows loaded: {engine.IsZeroflowsLoaded}");
+        WriteLine($"[Engine] Initialized, Bitremal loaded: {engine.IsBitremalLoaded}, Zeroflows loaded: {engine.IsZeroflowsLoaded}, Charwolf loaded: {engine.IsCharwolfLoaded}");
 
         String? version = engine.CheckForUpdate();
         WriteLine($"[Engine] Update version: {version ?? "none/disabled"}");
@@ -413,16 +417,21 @@ internal class Entry
         {
             String bitremal = result.BitremalProbabilities != null ? $"[{String.Join(", ", result.BitremalProbabilities)}]" : "null";
             String zf = result.ZeroflowsProbabilities != null ? $"[{String.Join(", ", result.ZeroflowsProbabilities)}]" : "null";
-            WriteLine($"[Engine]   {result.FilePath} -> cache={result.CacheResult}, malicious={result.IsMalicious}, bitremal={bitremal}, zeroflows={zf}");
+            String cw = result.CharwolfResult != null ? $"matched={result.CharwolfResult.Matched}, rules={String.Join(", ", result.CharwolfResult.Matches.Select(m => m.RuleName).Distinct())}" : "null";
+            String sig = result.SignatureResult != null ? $"signed={result.SignatureResult.IsSigned}, trusted={result.SignatureResult.IsTrusted}, cloud={result.SignatureResult.CloudResult}" : "null";
+            String shell = result.ShellResult != null ? result.ShellResult.Hit.ToString() : "null";
+            String arch = result.ArchiveResult != null ? $"archive={result.ArchiveResult.IsArchive}, suspicious={result.ArchiveResult.SuspiciousEntryCount}" : "null";
+            String doc = result.DocumentationResult != null ? $"macro={result.DocumentationResult.HasMacro}" : "null";
+            WriteLine($"[Engine]   {result.FilePath} -> cache={result.CacheResult}, malicious={result.IsMalicious}, bitremal={bitremal}, zeroflows={zf}, charwolf={cw}, signature={sig}, shell={shell}, archive={arch}, doc={doc}");
         }
     }
 
-    static void TestSignature(String filePath)
+    static void TestCharwolf(String filePath)
     {
-        WriteLine($"[Signature] Testing XSRule signature engine on {filePath}");
+        WriteLine($"[Charwolf] Testing XSRule engine on {filePath}");
         if (!File.Exists(filePath))
         {
-            WriteLine($"[Signature] File not found: {filePath}");
+            WriteLine($"[Charwolf] File not found: {filePath}");
             return;
         }
 
@@ -436,13 +445,13 @@ internal class Entry
 
         if (!File.Exists(rulePath))
         {
-            WriteLine($"[Signature] Rule file not found: {rulePath}");
+            WriteLine($"[Charwolf] Rule file not found: {rulePath}");
             return;
         }
 
         String source = File.ReadAllText(rulePath);
         XsRuleDocument document = new XsRuleParser(source).ParseDocument();
-        WriteLine($"[Signature] Parsed {document.Rules.Count} rules from reference file");
+        WriteLine($"[Charwolf] Parsed {document.Rules.Count} rules from reference file");
 
         String testRule = """
             define Notepad_Test {
@@ -458,21 +467,21 @@ internal class Entry
             """;
 
         XsRuleDocument testDocument = new XsRuleParser(testRule).ParseDocument();
-        WriteLine($"[Signature] Parsed {testDocument.Rules.Count} test rules, strings: {String.Join(", ", testDocument.Rules.Select(r => $"{r.Name}={r.Strings.Count}"))}");
+        WriteLine($"[Charwolf] Parsed {testDocument.Rules.Count} test rules, strings: {String.Join(", ", testDocument.Rules.Select(r => $"{r.Name}={r.Strings.Count}"))}");
 
         using CompiledXsRuleDocument compiled = new XsRuleCompiler().Compile(testDocument);
-        using SignatureEngine engine = new(compiled);
+        using CharwolfEngine engine = new(compiled);
 
         Stopwatch sw = Stopwatch.StartNew();
-        IReadOnlyList<SignatureResult> results = engine.ScanFile(filePath);
+        IReadOnlyList<CharwolfResult> results = engine.ScanFile(filePath);
         sw.Stop();
 
-        WriteLine($"[Signature] Scan completed in {sw.Elapsed.TotalMilliseconds:F3} ms");
-        foreach (SignatureResult result in results)
+        WriteLine($"[Charwolf] Scan completed in {sw.Elapsed.TotalMilliseconds:F3} ms");
+        foreach (CharwolfResult result in results)
         {
-            WriteLine($"[Signature]   {result.RuleName}: matched={result.Matched}, hits={result.Matches.Count}");
-            foreach (SignatureMatch match in result.Matches.Take(5))
-                WriteLine($"[Signature]     string#{match.StringId}");
+            WriteLine($"[Charwolf]   {result.RuleName}: matched={result.Matched}, hits={result.Matches.Count}");
+            foreach (Charwolf.XSRule.CharwolfMatch match in result.Matches.Take(5))
+                WriteLine($"[Charwolf]     string#{match.StringId}");
         }
     }
 }

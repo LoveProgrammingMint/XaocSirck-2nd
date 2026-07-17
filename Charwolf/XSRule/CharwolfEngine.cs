@@ -5,7 +5,7 @@ using PeNet.Header.Pe;
 
 namespace Charwolf.XSRule;
 
-public sealed class SignatureMatch
+public sealed class CharwolfMatch
 {
     public String RuleName { get; set; } = String.Empty;
     public Int32 RuleIndex { get; set; }
@@ -15,27 +15,27 @@ public sealed class SignatureMatch
     public Int32 Length { get; set; }
 }
 
-public sealed class SignatureResult
+public sealed class CharwolfResult
 {
     public String RuleName { get; set; } = String.Empty;
     public Int32 RuleIndex { get; set; }
     public Boolean Matched { get; set; }
-    public List<SignatureMatch> Matches { get; set; } = [];
+    public List<CharwolfMatch> Matches { get; set; } = [];
 }
 
-public sealed class SignatureEngine : IDisposable
+public sealed class CharwolfEngine : IDisposable
 {
     private readonly CompiledXsRuleDocument _compiled;
     private Boolean _disposed;
 
-    public SignatureEngine(CompiledXsRuleDocument compiled)
+    public CharwolfEngine(CompiledXsRuleDocument compiled)
     {
         _compiled = compiled ?? throw new ArgumentNullException(nameof(compiled));
     }
 
-    public IReadOnlyList<SignatureResult> ScanFile(String filePath)
+    public IReadOnlyList<CharwolfResult> ScanFile(String filePath)
     {
-        ObjectDisposedException.ThrowIf(_disposed, nameof(SignatureEngine));
+        ObjectDisposedException.ThrowIf(_disposed, nameof(CharwolfEngine));
 
         if (!File.Exists(filePath))
             throw new FileNotFoundException($"File not found: {filePath}", filePath);
@@ -101,21 +101,21 @@ public sealed class SignatureEngine : IDisposable
         }
     }
 
-    private List<SignatureResult> EvaluateRules(HashSet<(Int32 RuleIndex, Int32 StringId)> hits)
+    private List<CharwolfResult> EvaluateRules(HashSet<(Int32 RuleIndex, Int32 StringId)> hits)
     {
-        List<SignatureResult> results = [];
+        List<CharwolfResult> results = [];
         for (Int32 i = 0; i < _compiled.Rules.Count; i++)
         {
             XsRuleDefinition rule = _compiled.Rules[i];
             Boolean matched = EvaluateCondition(rule.Condition, i, hits);
-            SignatureResult result = new() { RuleName = rule.Name, RuleIndex = i, Matched = matched };
+            CharwolfResult result = new() { RuleName = rule.Name, RuleIndex = i, Matched = matched };
             if (matched)
             {
                 foreach ((Int32 ruleIndex, Int32 stringId) hit in hits)
                 {
                     if (hit.ruleIndex == i)
                     {
-                        result.Matches.Add(new SignatureMatch
+                        result.Matches.Add(new CharwolfMatch
                         {
                             RuleName = rule.Name,
                             RuleIndex = i,

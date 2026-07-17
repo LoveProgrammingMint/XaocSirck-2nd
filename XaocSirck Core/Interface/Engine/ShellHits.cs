@@ -4,7 +4,7 @@ using System.Text;
 
 namespace XaocSirck_Core.Interface.Engine;
 
-internal enum ShellHits : Byte
+public enum ShellHits : Byte
 {
     VmProtect,
     Themida,

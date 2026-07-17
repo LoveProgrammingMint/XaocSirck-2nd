@@ -1,29 +1,10 @@
-# 定义: 
-# "<#></#>" / "#" : 注释 (仅在字符串外成立)
-# 例如："Apple<#>Bear</#>" -> 不成立; "Apple" <#>From Apple.exe</#>
-# "#" 作为注释则需要单独为1行 (例如整个定义)
-# "define" : 定义 (内容物使用"{","}"包裹)
-# 例如:
-# define Apple_Malware {}
-# 定义一个空规则
-# "string" : 字符 (类似于Yara的字符,支持忽略大小写,Hex, 不支持正则化(Hex允许"?"通配))
-# "conditions" : 命中条件 (类似于Yara的命中条件, 仅支持and,or,"()",not,不支持通配符,将名称替换为字符ID)
-# "part" : 扫描位置 (支持"head","res","imp","exp",分别为头部64KB,执行段32KB,资源32KB,导入表,导出表)
-# 完整案例如下:
-# define Apple_Malware {
-#     string {
-#       "Apple"(head) Wildcard;
-#       "[4C 6F 61 ?? 4C 69 62 72 61 72 79 45 78]"(imp) Hex;
-#       "Run_Malware"(exp) Wildcard;
-#       "http://apple.mal"(res) Wildcard;
-#       "Real Apple"(code) Wildcard;
-#       "https://apple.com"(res) Wildcard;
-#       }
-#     conditions {
-#       1 and 2 and (3 or 4) and not(5 or 6)
-#       }
-# }
-
-# 加载编译为特殊高性能缓存,避免每次都加载一遍规则
-# 支持保存为*.xsrc的二进制高性能缓存格式,下次可以直接加载
-# 确保高性能,耗时短,单次解决(你可能需要AC自动机配合其他算法实现)
+define Notepad_Test {
+    string {
+        "notepad"(head) Wildcard;
+        "MZ"(head) Wildcard;
+        "[4D 5A]"(head) Hex;
+    }
+    conditions {
+        1 and 2 and 3
+    }
+}

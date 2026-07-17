@@ -67,5 +67,8 @@ public struct EngineMode
     public _Mode_Zeroflows Zeroflow;
     public _Mode_Signature Signature;
     public _Mode_Charwolf Charwolf;
+    public _Mode_Archive Archive;
+    public _Mode_Documentation Documentation;
+    public _Mode_Shell Shell;
     public _Mode_Engines Engines;
 }
