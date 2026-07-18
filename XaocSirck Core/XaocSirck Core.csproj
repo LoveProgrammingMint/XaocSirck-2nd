@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Charwolf\Charwolf.csproj" />
+    <ProjectReference Include="..\LogSystem\LogSystem.csproj" />
   </ItemGroup>
 
   <ItemGroup>

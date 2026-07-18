@@ -182,7 +182,7 @@ internal sealed unsafe class AssemblyListObtain : IFeatureObtain
 
 internal sealed class BpeEncoder
 {
-    private readonly String _vocabPath = Path.Combine(App.RuntimeDirectory, "AssemblyList", "platforms_mnemonics_vocab.bin");
+    private readonly String _vocabPath = Path.Combine(App.RuntimeDirectory, "Resources", "platforms_mnemonics_vocab.bin");
 
     private Dictionary<String, Int32>? _baseTokenToId;
     private List<(Int32 LeftId, Int32 RightId)>? _mergeRules;

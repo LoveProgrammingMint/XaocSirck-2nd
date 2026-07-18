@@ -1,7 +1,8 @@
 using System.Runtime.InteropServices;
+using XaocSirck_Core;
 using XaocSirck_Core.Native;
 
-namespace XaocSirck_Core.Inference;
+namespace XaocSirck_Core.Interface.Inference;
 
 internal sealed unsafe class OnnxModel : ModelBase
 {
@@ -35,7 +36,10 @@ internal sealed unsafe class OnnxModel : ModelBase
         ArgumentNullException.ThrowIfNull(modelPath);
 
         if (_sessionManagement == IntPtr.Zero)
+        {
+            App.Logger.Error($"ONNX model session management unavailable: {_name}");
             throw new InvalidOperationException("Session management is not available.");
+        }
 
         InferenceService.XaocSirckSessionManagementLoadModel(_sessionManagement, _name, modelPath);
         IntPtr session = InferenceService.XaocSirckSessionManagementGet(_sessionManagement, _name);

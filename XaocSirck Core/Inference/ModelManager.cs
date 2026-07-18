@@ -1,3 +1,4 @@
+using XaocSirck_Core.Interface.Inference;
 using XaocSirck_Core.Native;
 
 namespace XaocSirck_Core.Inference;
@@ -14,7 +15,10 @@ internal sealed class ModelManager : IModelManagerInterface
     {
         _sessionManagement = InferenceService.XaocSirckSessionManagementCreate();
         if (_sessionManagement == IntPtr.Zero)
+        {
+            App.Logger.Error("Native session management creation failed");
             throw new InvalidOperationException("Failed to create native session management.");
+        }
     }
 
     public OnnxModel Load(String name, String modelPath)
@@ -54,6 +58,7 @@ internal sealed class ModelManager : IModelManagerInterface
 
             _disposed = true;
             GC.SuppressFinalize(this);
+            App.Logger.Info("ModelManager disposed");
         }
     }
 }

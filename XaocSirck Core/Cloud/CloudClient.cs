@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using XaocSirck_Core.Interface.Cloud;
 using XaocSirck_Core.Native;
 
 namespace XaocSirck_Core.Cloud;
@@ -19,10 +20,14 @@ public sealed unsafe class CloudClient : IDisposable
         Disconnect();
         _instance = OnlineService.XsCommunication_Create();
         if (_instance == null)
+        {
+            App.Logger.Error($"Cloud service instance creation failed: {address}");
             throw new InvalidOperationException("Failed to create online service instance.");
+        }
 
         OnlineService.XsCommunication_SetServerAddress(_instance, address);
         _serverAddress = address;
+        App.Logger.Info($"Cloud service connected: {address}");
     }
 
     public void Disconnect()
@@ -31,6 +36,7 @@ public sealed unsafe class CloudClient : IDisposable
         {
             OnlineService.XsCommunication_Destroy(_instance);
             _instance = null;
+            App.Logger.Info("Cloud service disconnected");
         }
         _serverAddress = String.Empty;
     }
@@ -48,7 +54,10 @@ public sealed unsafe class CloudClient : IDisposable
         {
             XsApiPack* pack = OnlineService.XsApi_CacheQueryPack(data, (UInt64)sha256.Length);
             if (pack == null)
+            {
+                App.Logger.Warning("Cloud cache query pack creation failed");
                 return CloudCacheResult.Error;
+            }
 
             try
             {
@@ -61,6 +70,37 @@ public sealed unsafe class CloudClient : IDisposable
                     4 => CloudCacheResult.Unknown,
                     _ => CloudCacheResult.Error
                 };
+            }
+            finally
+            {
+                OnlineService.XsApi_FreePack(pack);
+            }
+        }
+    }
+
+    public Boolean Report(Byte[] sha256, String filePath)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, nameof(CloudClient));
+        ArgumentNullException.ThrowIfNull(sha256);
+        ArgumentNullException.ThrowIfNull(filePath);
+        if (sha256.Length != 32)
+            throw new ArgumentException("SHA256 must be 32 bytes.", nameof(sha256));
+        if (_instance == null)
+            throw new InvalidOperationException("Not connected.");
+
+        fixed (Byte* data = sha256)
+        {
+            XsApiPack* pack = OnlineService.XsApi_ReportPack(data, (UInt64)sha256.Length, filePath);
+            if (pack == null)
+            {
+                App.Logger.Warning("Cloud report pack creation failed");
+                return false;
+            }
+
+            try
+            {
+                Byte result = OnlineService.XsCommunication_Report(_instance, pack);
+                return result == 0;
             }
             finally
             {
@@ -82,7 +122,10 @@ public sealed unsafe class CloudClient : IDisposable
         {
             XsApiPack* pack = OnlineService.XsApi_SignatureQueryPack(data, (UInt64)sha256.Length);
             if (pack == null)
+            {
+                App.Logger.Warning("Cloud signature query pack creation failed");
                 return CloudSignatureResult.Error;
+            }
 
             try
             {
@@ -110,22 +153,7 @@ public sealed unsafe class CloudClient : IDisposable
             Disconnect();
             _disposed = true;
             GC.SuppressFinalize(this);
+            App.Logger.Info("CloudClient disposed");
         }
     }
-}
-
-public enum CloudCacheResult : Byte
-{
-    Miss = 0,
-    Hit = 1,
-    Error = 2,
-    Unknown = 4
-}
-
-public enum CloudSignatureResult : Byte
-{
-    Trusted = 0,
-    Untrusted = 1,
-    Error = 2,
-    Unknown = 4
 }

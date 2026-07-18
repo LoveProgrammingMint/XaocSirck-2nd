@@ -1,7 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.Sqlite;
+using XaocSirck_Core.Interface.Feature;
 
 namespace XaocSirck_Core.Engine.Feature_Cache;
 
@@ -11,16 +10,20 @@ public class DatabaseManagement : IDisposable
     private readonly String _connectionString;
     private Boolean _disposed;
 
-    private const String TableName = "FeatureData";
+    private const String TableName = "FeatureCache";
 
-    public const Int32 RbLength = 16384;
-    public const Int32 EmLength = 256;
+    public const Int32 RbLength = 131072;
+    public const Int32 EmLength = 64;
     public const Int32 ItLength = 417;
-    public const Int32 AlLength = 512;
+    public const Int32 AlLength = 98304;
     public const Int32 ZfLength = 256;
 
     public DatabaseManagement(String dbPath)
     {
+        String? dir = Path.GetDirectoryName(dbPath);
+        if (!String.IsNullOrEmpty(dir))
+            Directory.CreateDirectory(dir);
+
         _connectionString = $"Data Source={dbPath};";
         _connection = new SqliteConnection(_connectionString);
         _connection.Open();
@@ -46,10 +49,10 @@ public class DatabaseManagement : IDisposable
 
     public void InsertOrUpdate(
         String sha256Hash,
-        Byte[] rbData,
+        Single[] rbData,
         Single[] emData,
         Single[] itData,
-        Int32[] alData,
+        Single[] alData,
         Single[] zfData)
     {
         ValidateInputs(sha256Hash, rbData, emData, itData, alData, zfData);
@@ -67,10 +70,10 @@ public class DatabaseManagement : IDisposable
 
         using SqliteCommand command = new(upsertSql, _connection);
         command.Parameters.AddWithValue("@hash", sha256Hash);
-        command.Parameters.AddWithValue("@rb", rbData);
+        command.Parameters.AddWithValue("@rb", FloatArrayToByteArray(rbData));
         command.Parameters.AddWithValue("@em", FloatArrayToByteArray(emData));
         command.Parameters.AddWithValue("@it", FloatArrayToByteArray(itData));
-        command.Parameters.AddWithValue("@al", IntArrayToByteArray(alData));
+        command.Parameters.AddWithValue("@al", FloatArrayToByteArray(alData));
         command.Parameters.AddWithValue("@zf", FloatArrayToByteArray(zfData));
 
         command.ExecuteNonQuery();
@@ -78,24 +81,24 @@ public class DatabaseManagement : IDisposable
 
     public void Insert(
         String sha256Hash,
-        Byte[] rbData,
+        Single[] rbData,
         Single[] emData,
         Single[] itData,
-        Int32[] alData,
+        Single[] alData,
         Single[] zfData)
     {
         ValidateInputs(sha256Hash, rbData, emData, itData, alData, zfData);
 
-        string insertSql = $@"
+        String insertSql = $@"
             INSERT INTO {TableName} (Hash, RB, EM, IT, AL, ZF)
             VALUES (@hash, @rb, @em, @it, @al, @zf);";
 
         using SqliteCommand command = new(insertSql, _connection);
         command.Parameters.AddWithValue("@hash", sha256Hash);
-        command.Parameters.AddWithValue("@rb", rbData);
+        command.Parameters.AddWithValue("@rb", FloatArrayToByteArray(rbData));
         command.Parameters.AddWithValue("@em", FloatArrayToByteArray(emData));
         command.Parameters.AddWithValue("@it", FloatArrayToByteArray(itData));
-        command.Parameters.AddWithValue("@al", IntArrayToByteArray(alData));
+        command.Parameters.AddWithValue("@al", FloatArrayToByteArray(alData));
         command.Parameters.AddWithValue("@zf", FloatArrayToByteArray(zfData));
 
         command.ExecuteNonQuery();
@@ -103,10 +106,10 @@ public class DatabaseManagement : IDisposable
 
     public void Update(
         String sha256Hash,
-        Byte[] rbData,
+        Single[] rbData,
         Single[] emData,
         Single[] itData,
-        Int32[] alData,
+        Single[] alData,
         Single[] zfData)
     {
         ValidateInputs(sha256Hash, rbData, emData, itData, alData, zfData);
@@ -118,18 +121,18 @@ public class DatabaseManagement : IDisposable
 
         using SqliteCommand command = new(updateSql, _connection);
         command.Parameters.AddWithValue("@hash", sha256Hash);
-        command.Parameters.AddWithValue("@rb", rbData);
+        command.Parameters.AddWithValue("@rb", FloatArrayToByteArray(rbData));
         command.Parameters.AddWithValue("@em", FloatArrayToByteArray(emData));
         command.Parameters.AddWithValue("@it", FloatArrayToByteArray(itData));
-        command.Parameters.AddWithValue("@al", IntArrayToByteArray(alData));
+        command.Parameters.AddWithValue("@al", FloatArrayToByteArray(alData));
         command.Parameters.AddWithValue("@zf", FloatArrayToByteArray(zfData));
 
-        int affected = command.ExecuteNonQuery();
+        Int32 affected = command.ExecuteNonQuery();
         if (affected == 0)
             throw new KeyNotFoundException($"Hash not found: {sha256Hash}");
     }
 
-    public void BatchInsert(List<(String hash, Byte[] rb, Single[] em, Single[] it, Int32[] al, Single[] zf)> records)
+    public void BatchInsert(List<(String hash, Single[] rb, Single[] em, Single[] it, Single[] al, Single[] zf)> records)
     {
         using SqliteTransaction transaction = _connection.BeginTransaction();
         try
@@ -147,15 +150,15 @@ public class DatabaseManagement : IDisposable
                 SqliteParameter alParam = command.Parameters.Add("@al", SqliteType.Blob);
                 SqliteParameter zfParam = command.Parameters.Add("@zf", SqliteType.Blob);
 
-                foreach ((String hash, Byte[] rb, Single[] em, Single[] it, Int32[] al, Single[] zf) in records)
+                foreach ((String hash, Single[] rb, Single[] em, Single[] it, Single[] al, Single[] zf) in records)
                 {
                     ValidateInputs(hash, rb, em, it, al, zf);
 
                     hashParam.Value = hash;
-                    rbParam.Value = rb;
+                    rbParam.Value = FloatArrayToByteArray(rb);
                     emParam.Value = FloatArrayToByteArray(em);
                     itParam.Value = FloatArrayToByteArray(it);
-                    alParam.Value = IntArrayToByteArray(al);
+                    alParam.Value = FloatArrayToByteArray(al);
                     zfParam.Value = FloatArrayToByteArray(zf);
 
                     command.ExecuteNonQuery();
@@ -288,13 +291,13 @@ public class DatabaseManagement : IDisposable
         command.ExecuteNonQuery();
     }
 
-    private void ValidateInputs(String sha256Hash, Byte[] rbData, Single[] emData, Single[] itData, Int32[] alData, Single[] zfData)
+    private void ValidateInputs(String sha256Hash, Single[] rbData, Single[] emData, Single[] itData, Single[] alData, Single[] zfData)
     {
         if (String.IsNullOrWhiteSpace(sha256Hash))
             throw new ArgumentException("SHA256 hash cannot be null or empty", nameof(sha256Hash));
 
         if (rbData == null || rbData.Length != RbLength)
-            throw new ArgumentException($"RB must be exactly {RbLength} bytes", nameof(rbData));
+            throw new ArgumentException($"RB must be exactly {RbLength} floats", nameof(rbData));
 
         if (emData == null || emData.Length != EmLength)
             throw new ArgumentException($"EM must be exactly {EmLength} floats", nameof(emData));
@@ -303,7 +306,7 @@ public class DatabaseManagement : IDisposable
             throw new ArgumentException($"IT must be exactly {ItLength} floats", nameof(itData));
 
         if (alData == null || alData.Length != AlLength)
-            throw new ArgumentException($"AL must be exactly {AlLength} integers", nameof(alData));
+            throw new ArgumentException($"AL must be exactly {AlLength} floats", nameof(alData));
 
         if (zfData == null || zfData.Length != ZfLength)
             throw new ArgumentException($"ZF must be exactly {ZfLength} floats", nameof(zfData));
@@ -323,30 +326,16 @@ public class DatabaseManagement : IDisposable
         return floatArray;
     }
 
-    private Byte[] IntArrayToByteArray(Int32[] intArray)
-    {
-        Byte[] byteArray = new Byte[intArray.Length * sizeof(Int32)];
-        Buffer.BlockCopy(intArray, 0, byteArray, 0, byteArray.Length);
-        return byteArray;
-    }
-
-    private Int32[] ByteArrayToIntArray(Byte[] byteArray, Int32 expectedLength)
-    {
-        Int32[] intArray = new Int32[expectedLength];
-        Buffer.BlockCopy(byteArray, 0, intArray, 0, byteArray.Length);
-        return intArray;
-    }
-
     private FeatureRecord ReadRecordFromReader(SqliteDataReader reader)
     {
         return new FeatureRecord
         {
             Hash = reader.GetString(0),
-            RB = (Byte[])reader["RB"],
-            EM = ByteArrayToFloatArray((byte[])reader["EM"], EmLength),
-            IT = ByteArrayToFloatArray((byte[])reader["IT"], ItLength),
-            AL = ByteArrayToIntArray((byte[])reader["AL"], AlLength),
-            ZF = ByteArrayToFloatArray((byte[])reader["ZF"], ZfLength),
+            RB = ByteArrayToFloatArray((Byte[])reader["RB"], RbLength),
+            EM = ByteArrayToFloatArray((Byte[])reader["EM"], EmLength),
+            IT = ByteArrayToFloatArray((Byte[])reader["IT"], ItLength),
+            AL = ByteArrayToFloatArray((Byte[])reader["AL"], AlLength),
+            ZF = ByteArrayToFloatArray((Byte[])reader["ZF"], ZfLength),
             CreatedAt = reader.GetDateTime(6)
         };
     }
@@ -361,15 +350,4 @@ public class DatabaseManagement : IDisposable
         }
         GC.SuppressFinalize(this);
     }
-}
-
-public class FeatureRecord
-{
-    public String Hash { get; set; } = String.Empty;
-    public Byte[] RB { get; set; } = [];
-    public Single[] EM { get; set; } = [];
-    public Single[] IT { get; set; } = [];
-    public Int32[] AL { get; set; } = [];
-    public Single[] ZF { get; set; } = [];
-    public DateTime CreatedAt { get; set; }
 }

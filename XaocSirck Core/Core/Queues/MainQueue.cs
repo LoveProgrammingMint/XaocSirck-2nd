@@ -1,10 +1,18 @@
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using PeNet;
 using XaocSirck_Core.Cloud;
 using XaocSirck_Core.Engine;
+using XaocSirck_Core.Engine.Feature_Cache;
 using XaocSirck_Core.Feature;
 using XaocSirck_Core.Inference;
+using XaocSirck_Core.Interface.Cloud;
 using XaocSirck_Core.Interface.Engine;
+using XaocSirck_Core.Interface.Feature;
+using XaocSirck_Core.Interface.Settings;
+using Timer = XaocSirck_Core.Engine.Timer;
+using ITimer = XaocSirck_Core.Interface.Engine.ITimer;
 
 namespace XaocSirck_Core.Core.Queues;
 
@@ -16,6 +24,8 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
     private readonly ICharwolfEngine? _charwolf;
     private readonly EngineSettings _settings;
     private readonly Features _features;
+    private readonly FeatureCache? _featureCache;
+    private readonly ITimer _timer;
     private readonly CompressedArchive _archive = new();
     private readonly Signature _signature = new();
     private readonly List<ScanResult> _results = new();
@@ -46,9 +56,12 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
         _charwolf = charwolf;
         _settings = settings ?? new EngineSettings();
         _features = new Features();
+        _timer = new Timer(_settings.EnableTiming);
+        _featureCache = _settings.EnableFeatureCache ? new FeatureCache() : null;
     }
 
     public IReadOnlyList<ScanResult> Results => _results;
+    public ITimer Timer => _timer;
 
     public void Start(String path, EngineMode mode, Boolean recursive = true, Int32 maxFiles = 0)
     {
@@ -88,10 +101,26 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
             Wait();
             _cts?.Dispose();
             _features.Dispose();
+            _featureCache?.Dispose();
             _archive.Dispose();
+            if (_timer.Enabled)
+                LogTimingSummary();
             _disposed = true;
             GC.SuppressFinalize(this);
         }
+    }
+
+    private void LogTimingSummary()
+    {
+        IReadOnlyDictionary<String, TimeSpan> results = _timer.Results;
+        if (results.Count == 0)
+            return;
+        TimeSpan total = TimeSpan.Zero;
+        foreach (TimeSpan value in results.Values)
+            total += value;
+        App.Logger.Info($"[Timing] Total processing time: {total.TotalMilliseconds:F3} ms");
+        foreach (KeyValuePair<String, TimeSpan> kv in results.OrderByDescending(x => x.Value.Ticks))
+            App.Logger.Info($"[Timing] {kv.Key}: {kv.Value.TotalMilliseconds:F3} ms");
     }
 
     private void ProducerLoop(String path, Boolean recursive)
@@ -121,14 +150,17 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
                 count++;
             }
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
+            App.Logger.Warning($"Producer access denied: {path} - {ex.Message}");
         }
-        catch (DirectoryNotFoundException)
+        catch (DirectoryNotFoundException ex)
         {
+            App.Logger.Warning($"Producer directory not found: {path} - {ex.Message}");
         }
-        catch (IOException)
+        catch (IOException ex)
         {
+            App.Logger.Warning($"Producer IO error: {path} - {ex.Message}");
         }
     }
 
@@ -155,20 +187,28 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
     {
         try
         {
-            Byte[] sha256 = ComputeSha256(item.FilePath);
+            Byte[] sha256;
+            using (new TimerScope(_timer, "SHA256"))
+                sha256 = ComputeSha256(item.FilePath);
 
             CloudCacheResult cacheResult = CloudCacheResult.Error;
             if (_settings.EnableCloudCache && _cloud.IsConnected)
             {
-                try { cacheResult = _cloud.QueryCache(sha256); }
-                catch { }
+                try { using (new TimerScope(_timer, "CloudCache")) cacheResult = _cloud.QueryCache(sha256); }
+                catch (Exception ex) { App.Logger.Error($"Cloud cache query failed: {item.FilePath}", ex); }
+            }
+
+            if (_settings.ParticipateInCoConstruction && _cloud.IsConnected && cacheResult == CloudCacheResult.Miss)
+            {
+                try { _cloud.Report(sha256, item.FilePath); }
+                catch (Exception ex) { App.Logger.Error($"Cloud report failed: {item.FilePath}", ex); }
             }
 
             SignatureResult? signatureResult = null;
             if (mode.Signature != _Mode_Signature.Disabled)
             {
-                try { signatureResult = CheckSignature(item.FilePath, sha256, mode.Signature); }
-                catch { }
+                try { using (new TimerScope(_timer, "Signature")) signatureResult = CheckSignature(item.FilePath, sha256, mode.Signature); }
+                catch (Exception ex) { App.Logger.Error($"Signature check failed: {item.FilePath}", ex); }
             }
 
             if (cacheResult == CloudCacheResult.Hit)
@@ -186,53 +226,108 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
             CharwolfScanResult? charwolfResult = null;
             if (mode.Charwolf != _Mode_Charwolf.Disabled && _charwolf != null)
             {
-                try { charwolfResult = _charwolf.ScanFile(item.FilePath); }
-                catch { }
+                try { using (new TimerScope(_timer, "Charwolf")) charwolfResult = _charwolf.ScanFile(item.FilePath); }
+                catch (Exception ex) { App.Logger.Error($"Charwolf scan failed: {item.FilePath}", ex); }
             }
 
             ShellResult? shellResult = null;
             if (mode.Shell != _Mode_Shell.Disabled)
             {
-                try { shellResult = CheckShell(item.FilePath); }
-                catch { }
+                try { using (new TimerScope(_timer, "Shell")) shellResult = CheckShell(item.FilePath); }
+                catch (Exception ex) { App.Logger.Error($"Shell check failed: {item.FilePath}", ex); }
             }
 
             ArchiveResult? archiveResult = null;
             if (mode.Archive != _Mode_Archive.Disabled)
             {
-                try { archiveResult = CheckArchive(item.FilePath); }
-                catch { }
+                try { using (new TimerScope(_timer, "Archive")) archiveResult = CheckArchive(item.FilePath); }
+                catch (Exception ex) { App.Logger.Error($"Archive check failed: {item.FilePath}", ex); }
             }
 
             DocumentationResult? documentationResult = null;
             if (mode.Documentation != _Mode_Documentation.Disabled)
             {
-                try { documentationResult = CheckDocumentation(item.FilePath); }
-                catch { }
+                try { using (new TimerScope(_timer, "Documentation")) documentationResult = CheckDocumentation(item.FilePath); }
+                catch (Exception ex) { App.Logger.Error($"Documentation check failed: {item.FilePath}", ex); }
             }
 
-            _features.Set(item.FilePath, mode);
-            FeaturesStruct features = _features.Execute(null);
+            String sha256String = BitConverter.ToString(sha256).Replace("-", "");
+            FeaturesStruct features;
+            Boolean fromCache = false;
+            Boolean needFullFeatures = mode.Bitremal != _Mode_Bitremal.Disabled;
+            Boolean useFeatureCache = _settings.EnableFeatureCache && _featureCache != null;
+            try
+            {
+                FeatureRecord? cacheRecord = null;
+                if (useFeatureCache && needFullFeatures)
+                {
+                    using (new TimerScope(_timer, "FeatureCacheQuery"))
+                        cacheRecord = _featureCache!.Get(sha256String);
+                }
+                if (cacheRecord != null)
+                {
+                    features = RestoreFeatures(cacheRecord);
+                    fromCache = true;
+                }
+                else
+                {
+                    using (new TimerScope(_timer, "FeatureExtraction"))
+                    {
+                        _features.Set(item.FilePath, mode);
+                        features = needFullFeatures ? _features.Execute_Cache() : _features.Execute(null);
+                    }
+                    try
+                    {
+                        if (useFeatureCache && needFullFeatures && features.RB != IntPtr.Zero && features.AL != IntPtr.Zero && features.IT != IntPtr.Zero && features.EM != IntPtr.Zero && features.Zeroflow != IntPtr.Zero)
+                        {
+                            using (new TimerScope(_timer, "FeatureCacheInsert"))
+                                _featureCache!.Insert(sha256String, features);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        App.Logger.Error($"Feature cache insert failed: {item.FilePath}", ex);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                App.Logger.Error($"Feature cache access failed: {item.FilePath}", ex);
+                using (new TimerScope(_timer, "FeatureExtraction"))
+                {
+                    _features.Set(item.FilePath, mode);
+                    features = needFullFeatures ? _features.Execute_Cache() : _features.Execute(null);
+                }
+            }
 
             Single[]? bitremalProbs = null;
             Single[]? zeroflowsProbs = null;
 
-            if (mode.Bitremal != _Mode_Bitremal.Disabled && _inference != null)
+            try
             {
-                try { bitremalProbs = _inference.InferOverThink(features.AL, features.RB, features.IT, features.EM); }
-                catch { }
-            }
+                if (mode.Bitremal != _Mode_Bitremal.Disabled && _inference != null)
+                {
+                    try { using (new TimerScope(_timer, "Bitremal")) bitremalProbs = _inference.InferOverThink(features.AL, features.RB, features.IT, features.EM); }
+                    catch (Exception ex) { App.Logger.Error($"Bitremal inference failed: {item.FilePath}", ex); }
+                }
 
-            if (mode.Zeroflow != _Mode_Zeroflows.Disabled && _zeroflows != null && features.Zeroflow != IntPtr.Zero)
+                if (mode.Zeroflow != _Mode_Zeroflows.Disabled && _zeroflows != null && features.Zeroflow != IntPtr.Zero)
+                {
+                    try { using (new TimerScope(_timer, "Zeroflows")) zeroflowsProbs = _zeroflows.Infer(features.Zeroflow); }
+                    catch (Exception ex) { App.Logger.Error($"Zeroflows inference failed: {item.FilePath}", ex); }
+                }
+
+                AddResult(item.FilePath, cacheResult, bitremalProbs, zeroflowsProbs, charwolfResult, signatureResult, shellResult, archiveResult, documentationResult);
+            }
+            finally
             {
-                try { zeroflowsProbs = _zeroflows.Infer(features.Zeroflow); }
-                catch { }
+                if (fromCache)
+                    FreeFeatures(features);
             }
-
-            AddResult(item.FilePath, cacheResult, bitremalProbs, zeroflowsProbs, charwolfResult, signatureResult, shellResult, archiveResult, documentationResult);
         }
-        catch
+        catch (Exception ex)
         {
+            App.Logger.Error($"Unhandled processing error: {item.FilePath}", ex);
             AddResult(item.FilePath, CloudCacheResult.Error, null, null, null, null, null, null, null);
         }
     }
@@ -386,6 +481,41 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
         return false;
     }
 
+    private static unsafe FeaturesStruct RestoreFeatures(FeatureRecord record)
+    {
+        FeaturesStruct features = new();
+        features.RB = (IntPtr)NativeMemory.AlignedAlloc((UIntPtr)(record.RB.Length * sizeof(Single)), 64);
+        features.EM = (IntPtr)NativeMemory.AlignedAlloc((UIntPtr)(record.EM.Length * sizeof(Single)), 64);
+        features.AL = (IntPtr)NativeMemory.AlignedAlloc((UIntPtr)(record.AL.Length * sizeof(Single)), 64);
+        features.Zeroflow = (IntPtr)NativeMemory.AlignedAlloc((UIntPtr)(record.ZF.Length * sizeof(Single)), 64);
+
+        Int32 itTotalBytes = sizeof(Int32) + record.IT.Length * sizeof(Single);
+        features.IT = (IntPtr)NativeMemory.AlignedAlloc((UIntPtr)itTotalBytes, 64);
+        *(Int32*)features.IT = itTotalBytes;
+
+        fixed (Single* rbPtr = record.RB)
+            Buffer.MemoryCopy(rbPtr, features.RB.ToPointer(), record.RB.Length * sizeof(Single), record.RB.Length * sizeof(Single));
+        fixed (Single* emPtr = record.EM)
+            Buffer.MemoryCopy(emPtr, features.EM.ToPointer(), record.EM.Length * sizeof(Single), record.EM.Length * sizeof(Single));
+        fixed (Single* alPtr = record.AL)
+            Buffer.MemoryCopy(alPtr, features.AL.ToPointer(), record.AL.Length * sizeof(Single), record.AL.Length * sizeof(Single));
+        fixed (Single* zfPtr = record.ZF)
+            Buffer.MemoryCopy(zfPtr, features.Zeroflow.ToPointer(), record.ZF.Length * sizeof(Single), record.ZF.Length * sizeof(Single));
+        fixed (Single* itPtr = record.IT)
+            Buffer.MemoryCopy(itPtr, (Byte*)features.IT + sizeof(Int32), record.IT.Length * sizeof(Single), record.IT.Length * sizeof(Single));
+
+        return features;
+    }
+
+    private static unsafe void FreeFeatures(FeaturesStruct features)
+    {
+        if (features.RB != IntPtr.Zero) { NativeMemory.AlignedFree(features.RB.ToPointer()); features.RB = IntPtr.Zero; }
+        if (features.EM != IntPtr.Zero) { NativeMemory.AlignedFree(features.EM.ToPointer()); features.EM = IntPtr.Zero; }
+        if (features.IT != IntPtr.Zero) { NativeMemory.AlignedFree(features.IT.ToPointer()); features.IT = IntPtr.Zero; }
+        if (features.AL != IntPtr.Zero) { NativeMemory.AlignedFree(features.AL.ToPointer()); features.AL = IntPtr.Zero; }
+        if (features.Zeroflow != IntPtr.Zero) { NativeMemory.AlignedFree(features.Zeroflow.ToPointer()); features.Zeroflow = IntPtr.Zero; }
+    }
+
     internal sealed class TaskItem
     {
         public String FilePath { get; }
@@ -398,83 +528,3 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
     }
 }
 
-public sealed class ScanResult
-{
-    public String FilePath { get; }
-    public CloudCacheResult CacheResult { get; }
-    public Single[]? BitremalProbabilities { get; }
-    public Single[]? ZeroflowsProbabilities { get; }
-    public CharwolfScanResult? CharwolfResult { get; }
-    public SignatureResult? SignatureResult { get; }
-    public ShellResult? ShellResult { get; }
-    public ArchiveResult? ArchiveResult { get; }
-    public DocumentationResult? DocumentationResult { get; }
-
-    public ScanResult(String filePath, CloudCacheResult cacheResult, Single[]? bitremalProbabilities, Single[]? zeroflowsProbabilities, CharwolfScanResult? charwolfResult, SignatureResult? signatureResult = null, ShellResult? shellResult = null, ArchiveResult? archiveResult = null, DocumentationResult? documentationResult = null)
-    {
-        FilePath = filePath;
-        CacheResult = cacheResult;
-        BitremalProbabilities = bitremalProbabilities;
-        ZeroflowsProbabilities = zeroflowsProbabilities;
-        CharwolfResult = charwolfResult;
-        SignatureResult = signatureResult;
-        ShellResult = shellResult;
-        ArchiveResult = archiveResult;
-        DocumentationResult = documentationResult;
-    }
-
-    public Single[] Probabilities => BitremalProbabilities ?? ZeroflowsProbabilities ?? [1.0f, 0.0f];
-
-    public Boolean IsMalicious
-    {
-        get
-        {
-            if (CacheResult == CloudCacheResult.Hit)
-                return true;
-            if (SignatureResult is { IsSigned: true, IsTrusted: false })
-                return true;
-            if (CharwolfResult?.Matched == true)
-                return true;
-            if (ShellResult?.Hit != ShellHits.Emtpy && ShellResult?.Hit != null)
-                return true;
-            if (ArchiveResult?.SuspiciousEntryCount > 0)
-                return true;
-            if (DocumentationResult?.HasMacro == true)
-                return true;
-            if (BitremalProbabilities is { Length: >= 2 } && BitremalProbabilities[1] > BitremalProbabilities[0])
-                return true;
-            if (ZeroflowsProbabilities is { Length: >= 2 } && ZeroflowsProbabilities[1] > ZeroflowsProbabilities[0])
-                return true;
-            return false;
-        }
-    }
-}
-
-public sealed class SignatureResult
-{
-    public String FilePath { get; set; } = String.Empty;
-    public Boolean IsSigned { get; set; }
-    public Boolean IsLocallyTrusted { get; set; }
-    public Boolean IsTrusted { get; set; }
-    public CloudSignatureResult CloudResult { get; set; } = CloudSignatureResult.Error;
-}
-
-public sealed class ShellResult
-{
-    public String FilePath { get; set; } = String.Empty;
-    public ShellHits Hit { get; set; } = ShellHits.Emtpy;
-}
-
-public sealed class ArchiveResult
-{
-    public String FilePath { get; set; } = String.Empty;
-    public Boolean IsArchive { get; set; }
-    public Int32 EntryCount { get; set; }
-    public Int32 SuspiciousEntryCount { get; set; }
-}
-
-public sealed class DocumentationResult
-{
-    public String FilePath { get; set; } = String.Empty;
-    public Boolean HasMacro { get; set; }
-}

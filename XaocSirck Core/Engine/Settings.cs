@@ -1,42 +1,8 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using XaocSirck_Core.Interface.Engine;
+using XaocSirck_Core.Interface.Settings;
 
 namespace XaocSirck_Core.Engine;
-
-public sealed class EngineSettings
-{
-    public String Version { get; set; } = "1.0.0";
-    public Boolean ParticipateInCoConstruction { get; set; }
-
-    public String ModelsDirectory { get; set; } = Path.Combine(App.RuntimeDirectory, "Models");
-    public Boolean EnableGpu { get; set; }
-    public Int32 ThreadCount { get; set; }
-
-    public Boolean FilterByExtension { get; set; } = true;
-    public String[] TargetExtensions { get; set; } = [".exe", ".dll", ".sys", ".drv", ".ocx", ".cpl", ".scr", ".efi", ".com"];
-
-    public _Mode_Bitremal BitremalMode { get; set; } = _Mode_Bitremal.Ot;
-    public _Mode_Zeroflows ZeroflowMode { get; set; } = _Mode_Zeroflows.Disabled;
-    public _Mode_Signature SignatureMode { get; set; } = _Mode_Signature.Disabled;
-    public _Mode_Archive ArchiveMode { get; set; } = _Mode_Archive.Disabled;
-    public _Mode_Documentation DocumentationMode { get; set; } = _Mode_Documentation.Disabled;
-    public _Mode_Shell ShellMode { get; set; } = _Mode_Shell.Disabled;
-    public _Mode_Charwolf CharwolfMode { get; set; } = _Mode_Charwolf.Disabled;
-
-    public Boolean EnableCloudCache { get; set; }
-    public String CloudServerAddress { get; set; } = String.Empty;
-    public String UpdateServerAddress { get; set; } = String.Empty;
-
-    public Int32 MaxFiles { get; set; }
-    public Boolean Recursive { get; set; } = true;
-    public Int32 QueueCapacity { get; set; } = 1024;
-    public Int32 MaxDirectoryDepth { get; set; } = 256;
-    public String LogDirectory { get; set; } = Path.Combine(AppContext.BaseDirectory, "Logs");
-}
-
-[JsonSerializable(typeof(EngineSettings))]
-public partial class SettingsJsonContext : JsonSerializerContext { }
 
 public sealed class Settings
 {
@@ -82,6 +48,8 @@ public sealed class Settings
     public Int32 QueueCapacity => Config.QueueCapacity;
     public Int32 MaxDirectoryDepth => Config.MaxDirectoryDepth;
     public String LogDirectory => Config.LogDirectory;
+    public Boolean EnableFeatureCache => Config.EnableFeatureCache;
+    public Boolean EnableLogging => Config.EnableLogging;
 
     public void Load(String? path = null)
     {
@@ -92,6 +60,7 @@ public sealed class Settings
 
             if (!File.Exists(_filePath))
             {
+                App.Logger.Info($"Configuration file not found, creating default: {_filePath}");
                 _config = new EngineSettings();
                 SaveLocked();
                 return;
@@ -101,9 +70,12 @@ public sealed class Settings
             {
                 String json = File.ReadAllText(_filePath);
                 _config = JsonSerializer.Deserialize(json, SettingsJsonContext.Default.EngineSettings) ?? new EngineSettings();
+                App.Logger.Enabled = _config.EnableLogging;
+                App.Logger.Info($"Configuration loaded: {_filePath}");
             }
-            catch
+            catch (Exception ex)
             {
+                App.Logger.Error($"Configuration load failed, using defaults: {_filePath}", ex);
                 _config = new EngineSettings();
                 SaveLocked();
             }
@@ -129,6 +101,7 @@ public sealed class Settings
         lock (_lock)
         {
             action(_config);
+            App.Logger.Enabled = _config.EnableLogging;
             SaveLocked();
         }
     }
@@ -142,7 +115,11 @@ public sealed class Settings
                 Directory.CreateDirectory(dir);
             String json = JsonSerializer.Serialize(_config, SettingsJsonContext.Default.EngineSettings);
             File.WriteAllText(_filePath, json);
+            App.Logger.Info($"Configuration saved: {_filePath}");
         }
-        catch { }
+        catch (Exception ex)
+        {
+            App.Logger.Error($"Configuration save failed: {_filePath}", ex);
+        }
     }
 }

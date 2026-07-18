@@ -22,7 +22,7 @@ internal sealed unsafe class ImportTableObtain : IFeatureObtain
 
     public ImportTableObtain()
     {
-        String vocabPath = Path.Combine(App.RuntimeDirectory, "ImportTable", "winapi_vocab_417.bin");
+        String vocabPath = Path.Combine(App.RuntimeDirectory, "Resources", "winapi_vocab_417.bin");
         if (!File.Exists(vocabPath))
             throw new FileNotFoundException($"Vocabulary file not found: {vocabPath}");
         _vocabTokens = File.ReadAllText(vocabPath)

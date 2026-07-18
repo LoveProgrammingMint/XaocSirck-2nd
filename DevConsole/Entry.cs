@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq;
 using Gee.External.Capstone;
 using Gee.External.Capstone.X86;
 using PeNet;
@@ -9,7 +10,10 @@ using XaocSirck_Core.Engine;
 using XaocSirck_Core.Feature;
 using XaocSirck_Core.Feature.Obtain;
 using XaocSirck_Core.Inference;
+using XaocSirck_Core.Interface.Cloud;
 using XaocSirck_Core.Interface.Engine;
+using XaocSirck_Core.Interface.Inference;
+using XaocSirck_Core.Interface.Settings;
 using Charwolf.XSRule;
 
 namespace DevConsole;
@@ -56,6 +60,9 @@ internal class Entry
             TestZeroflows(modelsDirectory, "C:\\Windows\\System32\\notepad.exe");
             WriteLine();
 
+            TestZeroflowsOnly(scanPath, modelsDirectory, maxFiles);
+            WriteLine();
+
             TestScan(scanPath, modelsDirectory, maxFiles);
             WriteLine();
 
@@ -89,12 +96,12 @@ internal class Entry
         DirectoryInfo? dir = new(baseDir);
         for (Int32 i = 0; i < 5 && dir != null; i++)
         {
-            String candidate = Path.Combine(dir.FullName, "XaocSirck_Runtimes", "Models");
+            String candidate = Path.Combine(dir.FullName, "XaocSirck", "Models");
             if (Directory.Exists(candidate))
                 return candidate;
             dir = dir.Parent;
         }
-        return Path.Combine(baseDir, "XaocSirck_Runtimes", "Models");
+        return Path.Combine(baseDir, "XaocSirck", "Models");
     }
 
     static void TestDispose()
@@ -164,6 +171,7 @@ internal class Entry
             s.FilterByExtension = true;
             s.MaxFiles = 8;
             s.QueueCapacity = 64;
+            s.EnableTiming = true;
         });
         WriteLine("[Settings] Updated and saved");
 
@@ -172,6 +180,7 @@ internal class Entry
         WriteLine($"[Settings] After reload BitremalMode: {App.Settings.Config.BitremalMode}, ZeroflowMode: {App.Settings.Config.ZeroflowMode}, SignatureMode: {App.Settings.Config.SignatureMode}");
         WriteLine($"[Settings] After reload ArchiveMode: {App.Settings.Config.ArchiveMode}, DocumentationMode: {App.Settings.Config.DocumentationMode}, ShellMode: {App.Settings.Config.ShellMode}, CharwolfMode: {App.Settings.Config.CharwolfMode}");
         WriteLine($"[Settings] After reload MaxFiles: {App.Settings.Config.MaxFiles}, QueueCapacity: {App.Settings.Config.QueueCapacity}");
+        WriteLine($"[Settings] EnableTiming: {App.Settings.Config.EnableTiming}, EnableFeatureCache: {App.Settings.Config.EnableFeatureCache}, EnableLogging: {App.Settings.Config.EnableLogging}");
     }
 
     static void TestCloud(String? serverAddress)
@@ -317,6 +326,68 @@ internal class Entry
         }
     }
 
+    static void TestZeroflowsOnly(String scanPath, String modelsDirectory, Int32 maxFiles)
+    {
+        if (!Directory.Exists(scanPath))
+        {
+            WriteLine($"[ZeroflowsOnly] Directory not found: {scanPath}");
+            return;
+        }
+
+        EngineSettings settings = App.Settings.Config;
+        using BitremalInferenceService inference = new(settings.EnableGpu);
+        using ZeroflowsInferenceService zeroflows = new(settings.EnableGpu);
+        try
+        {
+            zeroflows.Load(modelsDirectory);
+            WriteLine($"[ZeroflowsOnly] Zeroflows models loaded: {zeroflows.IsLoaded}");
+        }
+        catch (Exception ex)
+        {
+            WriteLine($"[ZeroflowsOnly] Zeroflows load warning: {ex.Message}");
+        }
+
+        using CloudClient cloud = new();
+        EngineSettings zeroflowSettings = new()
+        {
+            EnableTiming = true,
+            FilterByExtension = settings.FilterByExtension,
+            TargetExtensions = settings.TargetExtensions,
+            QueueCapacity = settings.QueueCapacity,
+            MaxFiles = settings.MaxFiles,
+            Recursive = settings.Recursive
+        };
+        using MainQueue queue = new(cloud, inference, zeroflows, zeroflowSettings, capacity: zeroflowSettings.QueueCapacity);
+
+        EngineMode mode = new() { Bitremal = _Mode_Bitremal.Disabled, Zeroflow = _Mode_Zeroflows.Zf };
+        queue.Start(scanPath, mode, zeroflowSettings.Recursive, maxFiles);
+
+        Stopwatch sw = Stopwatch.StartNew();
+        queue.Wait();
+        sw.Stop();
+
+        WriteLine($"[ZeroflowsOnly] Completed in {sw.Elapsed.TotalMilliseconds:F3} ms");
+        WriteLine($"[ZeroflowsOnly] Results: {queue.Results.Count}");
+        if (queue.Timer.Enabled && queue.Timer.Results.Count > 0)
+        {
+            WriteLine("[ZeroflowsOnly] Phase timing:");
+            foreach (KeyValuePair<String, TimeSpan> kv in queue.Timer.Results.OrderByDescending(x => x.Value.Ticks))
+                WriteLine($"[ZeroflowsOnly]   {kv.Key}: {kv.Value.TotalMilliseconds:F3} ms");
+        }
+        Int32 malicious = 0;
+        foreach (ScanResult result in queue.Results)
+        {
+            if (result.IsMalicious)
+                malicious++;
+        }
+        WriteLine($"[ZeroflowsOnly] Malicious: {malicious}");
+        foreach (ScanResult result in queue.Results.Take(10))
+        {
+            String zf = result.ZeroflowsProbabilities != null ? $"[{String.Join(", ", result.ZeroflowsProbabilities)}]" : "null";
+            WriteLine($"[ZeroflowsOnly]   {result.FilePath} -> malicious={result.IsMalicious}, zeroflows={zf}");
+        }
+    }
+
     static void TestScan(String scanPath, String modelsDirectory, Int32 maxFiles)
     {
         if (!Directory.Exists(scanPath))
@@ -364,6 +435,12 @@ internal class Entry
 
         WriteLine($"[Scan] Completed in {sw.Elapsed.TotalMilliseconds:F3} ms");
         WriteLine($"[Scan] Results: {queue.Results.Count}");
+        if (queue.Timer.Enabled && queue.Timer.Results.Count > 0)
+        {
+            WriteLine("[Scan] Phase timing:");
+            foreach (KeyValuePair<String, TimeSpan> kv in queue.Timer.Results.OrderByDescending(x => x.Value.Ticks))
+                WriteLine($"[Scan]   {kv.Key}: {kv.Value.TotalMilliseconds:F3} ms");
+        }
         Int32 malicious = 0;
         foreach (ScanResult result in queue.Results)
         {
@@ -397,15 +474,18 @@ internal class Entry
         engine.Initialize();
         WriteLine($"[Engine] Initialized, Bitremal loaded: {engine.IsBitremalLoaded}, Zeroflows loaded: {engine.IsZeroflowsLoaded}, Charwolf loaded: {engine.IsCharwolfLoaded}");
 
-        String? version = engine.CheckForUpdate();
-        WriteLine($"[Engine] Update version: {version ?? "none/disabled"}");
-
         Stopwatch sw = Stopwatch.StartNew();
         ScanResult[] results = engine.Scan(scanPath, maxFiles: maxFiles);
         sw.Stop();
 
         WriteLine($"[Engine] Scan completed in {sw.Elapsed.TotalMilliseconds:F3} ms");
         WriteLine($"[Engine] Results: {results.Length}");
+        if (engine.Timer?.Enabled == true && engine.Timer.Results.Count > 0)
+        {
+            WriteLine("[Engine] Phase timing:");
+            foreach (KeyValuePair<String, TimeSpan> kv in engine.Timer.Results.OrderByDescending(x => x.Value.Ticks))
+                WriteLine($"[Engine]   {kv.Key}: {kv.Value.TotalMilliseconds:F3} ms");
+        }
         Int32 malicious = 0;
         foreach (ScanResult result in results)
         {

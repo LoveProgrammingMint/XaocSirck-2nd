@@ -1,3 +1,5 @@
+using XaocSirck_Core.Interface.Inference;
+
 namespace XaocSirck_Core.Inference;
 
 internal sealed class ZeroflowsInferenceService : IDisposable
@@ -26,6 +28,8 @@ internal sealed class ZeroflowsInferenceService : IDisposable
         LoadIfExists("zeroflows_meta", Path.Combine(modelsDirectory, "Zeroflows", "meta.onnx"));
         LoadIfExists("zeroflows_cb", Path.Combine(modelsDirectory, "Zeroflows", "cb.onnx"));
         LoadIfExists("zeroflows_lgb", Path.Combine(modelsDirectory, "Zeroflows", "lgb.onnx"));
+
+        App.Logger.Info($"Zeroflows loaded {_loaded.Count} models from {modelsDirectory}");
     }
 
     public Single[] Infer(IntPtr zeroflowInput)
@@ -70,15 +74,26 @@ internal sealed class ZeroflowsInferenceService : IDisposable
             _loaded.Clear();
             _disposed = true;
             GC.SuppressFinalize(this);
+            App.Logger.Info("ZeroflowsInferenceService disposed");
         }
     }
 
     private void LoadIfExists(String name, String path)
     {
         if (!File.Exists(path))
+        {
+            App.Logger.Warning($"Zeroflows model missing: {path}");
             return;
-        _models.Load(name, path);
-        _loaded.Add(name);
+        }
+        try
+        {
+            _models.Load(name, path);
+            _loaded.Add(name);
+        }
+        catch (Exception ex)
+        {
+            App.Logger.Error($"Zeroflows model load failed: {name} ({path})", ex);
+        }
     }
 
     private void EnsureLoaded(String[] names)

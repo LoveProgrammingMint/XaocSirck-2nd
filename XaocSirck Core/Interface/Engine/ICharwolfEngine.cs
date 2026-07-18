@@ -1,4 +1,4 @@
-namespace XaocSirck_Core.Engine;
+namespace XaocSirck_Core.Interface.Engine;
 
 public sealed class CharwolfMatch
 {

@@ -1,3 +1,5 @@
+using XaocSirck_Core.Interface.Inference;
+
 namespace XaocSirck_Core.Inference;
 
 internal sealed class BitremalInferenceService : IDisposable
@@ -30,6 +32,8 @@ internal sealed class BitremalInferenceService : IDisposable
         LoadIfExists("itbone", Path.Combine(modelsDirectory, "ImportTable", "IT_encoder.onnx"));
         LoadIfExists("embone", Path.Combine(modelsDirectory, "EntropyMap", "EM_encoder.onnx"));
         LoadIfExists("bitremal", Path.Combine(modelsDirectory, "Bitremal", "Bitremal.onnx"));
+
+        App.Logger.Info($"Bitremal loaded {_loaded.Count} models from {modelsDirectory}");
     }
 
     public Single[] InferOnlyRB(IntPtr rawBytesInput)
@@ -83,15 +87,26 @@ internal sealed class BitremalInferenceService : IDisposable
             _loaded.Clear();
             _disposed = true;
             GC.SuppressFinalize(this);
+            App.Logger.Info("BitremalInferenceService disposed");
         }
     }
 
     private void LoadIfExists(String name, String path)
     {
         if (!File.Exists(path))
+        {
+            App.Logger.Warning($"Bitremal model missing: {path}");
             return;
-        _models.Load(name, path);
-        _loaded.Add(name);
+        }
+        try
+        {
+            _models.Load(name, path);
+            _loaded.Add(name);
+        }
+        catch (Exception ex)
+        {
+            App.Logger.Error($"Bitremal model load failed: {name} ({path})", ex);
+        }
     }
 
     private void EnsureLoaded(String[] names)

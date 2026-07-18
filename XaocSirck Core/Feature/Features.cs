@@ -151,10 +151,16 @@ internal sealed unsafe class Features : IDisposable
         RBO.Clear();
         RBO.Obtain();
         BSP.RawBytes = RBO.GetResult();
-        features.RB = RBO.GetResult();
+        RBE.Clear();
+        RBE.Set(RBO.GetResult());
+        RBE.Extract();
+        features.RB = RBE.GetResult();
         ALO.Clear();
         ALO.Obtain();
-        features.AL = ALO.GetResult();
+        ALE.Clear();
+        ALE.Set(ALO.GetResult());
+        ALE.Extract();
+        features.AL = ALE.GetResult();
         ITO.Clear();
         ITO.Obtain();
         features.IT = ITO.GetResult();

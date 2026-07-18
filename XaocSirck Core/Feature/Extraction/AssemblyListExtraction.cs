@@ -20,7 +20,7 @@ internal sealed unsafe class AssemblyListExtraction : IFeatureExtraction
 
     public AssemblyListExtraction()
     {
-        String vocabPath = Path.Combine(App.RuntimeDirectory, "AssemblyList", "platforms_mnemonics_vocab.bin");
+        String vocabPath = Path.Combine(App.RuntimeDirectory, "Resources", "platforms_mnemonics_vocab.bin");
         (_tokenToId, _vocabSize) = LoadBpeVocab(vocabPath);
 
         String embedPath = Path.Combine(App.RuntimeDirectory, "Embeddings", "AssemblyList", "embedding_static.bin");

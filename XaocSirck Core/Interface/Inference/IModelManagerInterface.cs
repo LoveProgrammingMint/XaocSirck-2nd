@@ -1,4 +1,4 @@
-namespace XaocSirck_Core.Inference;
+namespace XaocSirck_Core.Interface.Inference;
 
 internal interface IModelManagerInterface : IDisposable
 {

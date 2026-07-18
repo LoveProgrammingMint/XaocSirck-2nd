@@ -5,6 +5,7 @@
     <Platform Name="x86" />
   </Configurations>
   <Project Path="Charwolf/Charwolf.csproj" Id="c5b205f3-2881-48d0-95f9-55dd33fae514" />
+  <Project Path="LogSystem/LogSystem.csproj" />
   <Project Path="Updater/Updater.csproj" />
   <Project Path="XaocSirck Core/XaocSirck Core.csproj" />
   <Project Path="XaocSirck Inference Service/XaocSirck Inference Service.vcxproj" Id="104da7f4-8c97-4548-adc5-3b0f48c683d4" />
