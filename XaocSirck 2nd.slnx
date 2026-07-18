@@ -8,6 +8,7 @@
   <Project Path="LogSystem/LogSystem.csproj" />
   <Project Path="Updater/Updater.csproj" />
   <Project Path="XaocSirck Core/XaocSirck Core.csproj" />
+  <Project Path="XaocSirck Export/XaocSirck Export.csproj" />
   <Project Path="XaocSirck Inference Service/XaocSirck Inference Service.vcxproj" Id="104da7f4-8c97-4548-adc5-3b0f48c683d4" />
   <Project Path="XaocSirck Online Service/XaocSirck Online Service.vcxproj" Id="0b2420e1-c946-4f8a-a933-fa40a6012c76" />
 </Solution>
