@@ -113,6 +113,10 @@ internal sealed unsafe class Features : IDisposable
                 features.EM = EME.GetResult();
                 break;
             case _Mode_Bitremal.Ot_Exist_RB:
+                RBO.Clear();
+                RBO.Obtain();
+                BSP.RawBytes = RBO.GetResult();
+                features.RB = RBO.GetResult();
                 ALO.Clear();
                 ALO.Obtain();
                 ALE.Clear();

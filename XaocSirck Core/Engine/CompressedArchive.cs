@@ -34,19 +34,37 @@ public sealed unsafe class CompressedArchive : IDisposable
             IArchiveEntry entry = _entries.Current;
             if (entry.IsDirectory) continue;
             Int64 size = entry.Size;
-            if (size > 200L * 1024L * 1024L || size <= 0) continue;
-            _length = size;
-            _buffer = Marshal.AllocHGlobal((nint)size);   // Use IntPtr will get a info ( - . -)
-            using Stream stream = entry.OpenEntryStream();
-            Span<Byte> span = new(_buffer.ToPointer(), (Int32)size);
-            Int32 total = 0;
-            while (total < size)
+            if (size > 200L * 1024L * 1024L || size <= 0 || size > Int32.MaxValue) continue;
+
+            Int32 length = (Int32)size;
+            IntPtr buffer = Marshal.AllocHGlobal(length);
+            try
             {
-                Int32 read = stream.Read(span[total..]);
-                if (read == 0) break;
-                total += read;
+                using Stream stream = entry.OpenEntryStream();
+                Span<Byte> span = new(buffer.ToPointer(), length);
+                Int32 total = 0;
+                while (total < length)
+                {
+                    Int32 read = stream.Read(span[total..]);
+                    if (read == 0) break;
+                    total += read;
+                }
+
+                if (total < length)
+                {
+                    Marshal.FreeHGlobal(buffer);
+                    continue;
+                }
+
+                _length = length;
+                _buffer = buffer;
+                return true;
             }
-            return true;
+            catch
+            {
+                Marshal.FreeHGlobal(buffer);
+                throw;
+            }
         }
         return false;
     }

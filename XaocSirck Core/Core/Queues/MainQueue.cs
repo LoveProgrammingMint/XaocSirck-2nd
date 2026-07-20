@@ -200,8 +200,11 @@ internal sealed class MainQueue : SPSC<MainQueue.TaskItem>, IDisposable
 
             if (_settings.ParticipateInCoConstruction && _cloud.IsConnected && cacheResult == CloudCacheResult.Miss)
             {
-                try { _cloud.Report(sha256, item.FilePath); }
+                Boolean reported = false;
+                try { reported = _cloud.Report(sha256, item.FilePath); }
                 catch (Exception ex) { App.Logger.Error($"Cloud report failed: {item.FilePath}", ex); }
+                if (!reported)
+                    App.Logger.Warning($"Cloud report rejected: {item.FilePath}");
             }
 
             SignatureResult? signatureResult = null;

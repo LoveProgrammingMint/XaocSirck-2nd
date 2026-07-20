@@ -74,8 +74,8 @@ public sealed class Logger : ILogger, IDisposable
         }
 
         Directory.CreateDirectory(_baseDirectory);
-        String path = Path.Combine(_baseDirectory, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss_fff}.log");
-        using StreamWriter writer = new(path, false, System.Text.Encoding.UTF8);
+        String path = Path.Combine(_baseDirectory, $"{DateTime.Now:yyyy-MM-dd}_{Environment.ProcessId}.log");
+        using StreamWriter writer = new(path, true, System.Text.Encoding.UTF8);
         while (_queue.Count > 0)
         {
             LogEntry entry = _queue.Dequeue();

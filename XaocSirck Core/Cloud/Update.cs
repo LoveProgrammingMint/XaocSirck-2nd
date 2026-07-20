@@ -127,23 +127,55 @@ public sealed unsafe class UpdateClient : IDisposable
 
     public void Apply(String? serviceName = null)
     {
+        ObjectDisposedException.ThrowIf(_disposed, nameof(UpdateClient));
+        if (!File.Exists(_packagePath))
+            throw new FileNotFoundException($"Update package not found at {_packagePath}", _packagePath);
+
+        App.Logger.Info($"Applying update package: {_packagePath}");
+
         if (Directory.Exists(_extractPath))
             Directory.Delete(_extractPath, true);
         Directory.CreateDirectory(_extractPath);
 
         System.IO.Compression.ZipFile.ExtractToDirectory(_packagePath, _extractPath, overwriteFiles: true);
 
+        String listFile = Path.Combine(_extractPath, "update_list.updatelist");
+        if (!File.Exists(listFile))
+            throw new FileNotFoundException($"Update list not found at {listFile}", listFile);
+
         String updaterFullPath = Path.GetFullPath(_updaterPath);
         if (!File.Exists(updaterFullPath))
             throw new FileNotFoundException($"Updater not found at {updaterFullPath}", updaterFullPath);
 
         String arguments = serviceName is null ? _extractPath : $"{_extractPath} {serviceName}";
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        String? updaterDir = Path.GetDirectoryName(updaterFullPath);
+
+        using System.Diagnostics.Process process = new();
+        process.StartInfo = new System.Diagnostics.ProcessStartInfo
         {
-            UseShellExecute = true,
             FileName = updaterFullPath,
             Arguments = arguments,
-        });
+            WorkingDirectory = updaterDir ?? AppContext.BaseDirectory,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+
+        if (!process.Start())
+            throw new InvalidOperationException("Failed to start Updater process.");
+
+        App.Logger.Info($"Updater started: {updaterFullPath} {arguments}");
+
+        if (process.WaitForExit(5000))
+        {
+            if (process.ExitCode != 0)
+                App.Logger.Warning($"Updater exited with code {process.ExitCode}");
+            else
+                App.Logger.Info("Updater completed");
+        }
+        else
+        {
+            App.Logger.Info("Updater is still running; service should exit to allow update completion");
+        }
     }
 
     public void Dispose()

@@ -58,10 +58,11 @@ internal sealed class ZeroflowsInferenceService : IDisposable
         for (Int32 i = 0; i < 2; i++)
         {
             Single sum = 0.0f;
-            if (meta.Length > i) sum += meta[i];
-            if (cb.Length > i) sum += cb[i];
-            if (lgb.Length > i) sum += lgb[i];
-            probs[i] = sum / 3.0f;
+            Int32 count = 0;
+            if (meta.Length > i) { sum += meta[i]; count++; }
+            if (cb.Length > i) { sum += cb[i]; count++; }
+            if (lgb.Length > i) { sum += lgb[i]; count++; }
+            probs[i] = count > 0 ? sum / count : 0.0f;
         }
         return probs;
     }

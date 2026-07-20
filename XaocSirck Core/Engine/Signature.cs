@@ -42,6 +42,10 @@ internal sealed class Signature
 
             return chainOk;
         }
-        catch { return false; }
+        catch (Exception ex)
+        {
+            App.Logger.Error("Signature validation failed", ex);
+            return false;
+        }
     }
 }

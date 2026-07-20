@@ -65,6 +65,7 @@ internal sealed class BitremalInferenceService : IDisposable
 
         Single[] al = RunModelToArray(_models.Get("albone"), alInput, [1, 192, 512]);
         Single[] rb = RunModelToArray(_models.Get("rbbone"), rbInput, [1, 8, 128, 128]);
+        // IT buffer stores a 4-byte length prefix; skip it to reach the 417 feature values.
         Single[] it = RunModelToArray(_models.Get("itbone"), itInput + sizeof(Int32), [1, 417, 1]);
         Single[] em = RunModelToArray(_models.Get("embone"), emInput, [1, 64, 1]);
 

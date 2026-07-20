@@ -17,6 +17,8 @@ try
     string extractPath = args[0];
     string serviceName = args[1];
 
+    Directory.SetCurrentDirectory(extractPath);
+
     Log($"Updater started. extractPath={extractPath} serviceName={serviceName}");
     Log($"WorkingDirectory={Environment.CurrentDirectory}");
 
@@ -32,6 +34,7 @@ try
     string[] lines = File.ReadAllLines(listFile);
     Log($"List entries: {lines.Length}");
 
+    bool anyMoveFailed = false;
     foreach (string line in lines)
     {
         if (string.IsNullOrWhiteSpace(line)) continue;
@@ -67,8 +70,15 @@ try
         }
         catch (Exception ex)
         {
+            anyMoveFailed = true;
             Log($"Move failed: {ex.Message}");
         }
+    }
+
+    if (anyMoveFailed)
+    {
+        Log("One or more file moves failed; aborting service restart");
+        return 1;
     }
 
     try
@@ -88,6 +98,7 @@ try
     catch (Exception ex)
     {
         Log($"Service start failed: {ex.Message}");
+        return 1;
     }
 
     Log("Updater finished");

@@ -18,6 +18,16 @@ internal sealed unsafe class Shell
         _pe = pe;
     }
 
+    private ImageSectionHeader? FindEntryPointSection()
+    {
+        if (_pe?.ImageNtHeaders?.OptionalHeader == null || _pe.ImageSectionHeaders == null)
+            return null;
+
+        UInt32 ep = _pe.ImageNtHeaders.OptionalHeader.AddressOfEntryPoint;
+        return _pe.ImageSectionHeaders.FirstOrDefault(s =>
+            ep >= s.VirtualAddress && ep < s.VirtualAddress + s.VirtualSize);
+    }
+
     public ShellHits CheckVMProtect()
     {
         if (_pe?.ImageSectionHeaders == null)
@@ -33,23 +43,17 @@ internal sealed unsafe class Shell
             }
         }
 
-        if (_pe.ImageNtHeaders?.OptionalHeader != null)
+        ImageSectionHeader? epSec = FindEntryPointSection();
+        if (epSec != null)
         {
-            UInt32 ep = _pe.ImageNtHeaders.OptionalHeader.AddressOfEntryPoint;
-            ImageSectionHeader? epSec = _pe.ImageSectionHeaders?.FirstOrDefault(s =>
-                ep >= s.VirtualAddress && ep < s.VirtualAddress + s.VirtualSize);
-
-            if (epSec != null)
+            if (epSec.Name.StartsWith("vmp", StringComparison.OrdinalIgnoreCase) ||
+                epSec.Name.StartsWith(".vmp", StringComparison.OrdinalIgnoreCase))
             {
-                if (epSec.Name.StartsWith("vmp", StringComparison.OrdinalIgnoreCase) ||
-                    epSec.Name.StartsWith(".vmp", StringComparison.OrdinalIgnoreCase))
-                {
-                    score += 25;
-                }
+                score += 25;
             }
         }
 
-        if (_pe.ImportedFunctions == null || !(_pe.ImportedFunctions.Length == 0))
+        if (_pe.ImportedFunctions == null || _pe.ImportedFunctions.Length > 0)
         {
             score += 30;
         }
@@ -94,24 +98,18 @@ internal sealed unsafe class Shell
             }
         }
 
-        if (_pe.ImageNtHeaders?.OptionalHeader != null)
+        ImageSectionHeader? epSec = FindEntryPointSection();
+        if (epSec != null)
         {
-            UInt32 ep = _pe.ImageNtHeaders.OptionalHeader.AddressOfEntryPoint;
-            ImageSectionHeader? epSec = _pe.ImageSectionHeaders?.FirstOrDefault(s =>
-                ep >= s.VirtualAddress && ep < s.VirtualAddress + s.VirtualSize);
-
-            if (epSec != null)
+            if (!epSec.Name.Equals(".text", StringComparison.OrdinalIgnoreCase) &&
+                !epSec.Name.Equals("CODE", StringComparison.OrdinalIgnoreCase) &&
+                !epSec.Name.Equals("text", StringComparison.OrdinalIgnoreCase))
             {
-                if (!epSec.Name.Equals(".text", StringComparison.OrdinalIgnoreCase) &&
-                    !epSec.Name.Equals("CODE", StringComparison.OrdinalIgnoreCase) &&
-                    !epSec.Name.Equals("text", StringComparison.OrdinalIgnoreCase))
-                {
-                    score += 20;
-                }
+                score += 20;
             }
         }
 
-        if (_pe.ImportedFunctions == null || !(_pe.ImportedFunctions.Length == 0))
+        if (_pe.ImportedFunctions == null || _pe.ImportedFunctions.Length > 0)
         {
             score += 35;
         }
@@ -145,23 +143,17 @@ internal sealed unsafe class Shell
                 score += 40;
         }
 
-        if (_pe.ImageNtHeaders?.OptionalHeader != null)
+        ImageSectionHeader? epSec = FindEntryPointSection();
+        if (epSec != null)
         {
-            UInt32 ep = _pe.ImageNtHeaders.OptionalHeader.AddressOfEntryPoint;
-            ImageSectionHeader? epSec = _pe.ImageSectionHeaders?.FirstOrDefault(s =>
-                ep >= s.VirtualAddress && ep < s.VirtualAddress + s.VirtualSize);
-
-            if (epSec != null)
+            if (epSec.Name.Equals(".enigma", StringComparison.OrdinalIgnoreCase) ||
+                epSec.Name.StartsWith(".sg", StringComparison.OrdinalIgnoreCase))
             {
-                if (epSec.Name.Equals(".enigma", StringComparison.OrdinalIgnoreCase) ||
-                    epSec.Name.StartsWith(".sg", StringComparison.OrdinalIgnoreCase))
-                {
-                    score += 25;
-                }
+                score += 25;
             }
         }
 
-        if (_pe.ImportedFunctions == null || !(_pe.ImportedFunctions.Length == 0))
+        if (_pe.ImportedFunctions == null || _pe.ImportedFunctions.Length > 0)
         {
             score += 30;
         }
@@ -231,20 +223,14 @@ internal sealed unsafe class Shell
                 score += 10;
         }
 
-        if (_pe.ImageNtHeaders?.OptionalHeader != null)
+        ImageSectionHeader? epSec = FindEntryPointSection();
+        if (epSec != null)
         {
-            UInt32 ep = _pe.ImageNtHeaders.OptionalHeader.AddressOfEntryPoint;
-            ImageSectionHeader? epSec = _pe.ImageSectionHeaders?.FirstOrDefault(s =>
-                ep >= s.VirtualAddress && ep < s.VirtualAddress + s.VirtualSize);
-
-            if (epSec != null)
+            if (!epSec.Name.Equals(".text", StringComparison.OrdinalIgnoreCase) &&
+                !epSec.Name.Equals("CODE", StringComparison.OrdinalIgnoreCase) &&
+                !epSec.Name.Equals("text", StringComparison.OrdinalIgnoreCase))
             {
-                if (!epSec.Name.Equals(".text", StringComparison.OrdinalIgnoreCase) &&
-                    !epSec.Name.Equals("CODE", StringComparison.OrdinalIgnoreCase) &&
-                    !epSec.Name.Equals("text", StringComparison.OrdinalIgnoreCase))
-                {
-                    score += 20;
-                }
+                score += 20;
             }
         }
 
@@ -282,24 +268,18 @@ internal sealed unsafe class Shell
 
         Int32 suspiciousScore = 0;
 
-        if (_pe.ImageNtHeaders?.OptionalHeader != null && _pe.ImageSectionHeaders != null)
+        ImageSectionHeader? epSec = FindEntryPointSection();
+        if (epSec != null)
         {
-            UInt32 ep = _pe.ImageNtHeaders.OptionalHeader.AddressOfEntryPoint;
-            ImageSectionHeader? epSec = _pe.ImageSectionHeaders.FirstOrDefault(s =>
-                ep >= s.VirtualAddress && ep < s.VirtualAddress + s.VirtualSize);
-
-            if (epSec != null)
+            if (!epSec.Name.Equals(".text", StringComparison.OrdinalIgnoreCase) &&
+                !epSec.Name.Equals("CODE", StringComparison.OrdinalIgnoreCase) &&
+                !epSec.Name.Equals("text", StringComparison.OrdinalIgnoreCase))
             {
-                if (!epSec.Name.Equals(".text", StringComparison.OrdinalIgnoreCase) &&
-                    !epSec.Name.Equals("CODE", StringComparison.OrdinalIgnoreCase) &&
-                    !epSec.Name.Equals("text", StringComparison.OrdinalIgnoreCase))
-                {
-                    suspiciousScore += 15;
-                }
+                suspiciousScore += 15;
             }
         }
 
-        if (_pe.ImportedFunctions == null || !(_pe.ImportedFunctions.Length == 0))
+        if (_pe.ImportedFunctions == null || _pe.ImportedFunctions.Length > 0)
         {
             suspiciousScore += 25;
         }
