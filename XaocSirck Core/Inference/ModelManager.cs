@@ -27,6 +27,12 @@ internal sealed class ModelManager : IModelManagerInterface
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(modelPath);
 
+        if (_models.TryGetValue(name, out OnnxModel? existingModel))
+        {
+            existingModel.Dispose();
+            _models.Remove(name);
+        }
+
         if (_models.Count == 0)
             InferenceService.XaocSirckSessionManagementSwitchDevice(_sessionManagement, EnableGpu ? "Gpu" : "Cpu");
 

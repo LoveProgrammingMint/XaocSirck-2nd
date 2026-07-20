@@ -89,16 +89,23 @@ internal sealed unsafe class OnnxModel : ModelBase
             if (outputTensor == IntPtr.Zero)
                 throw new InvalidOperationException("Inference returned no output.");
 
-            Single* outputData = InferenceService.XaocSirckSessionInferenceGetOutputData(outputTensor, out Int64 length);
-            if (outputData == null || length <= 0)
-                return [];
-
-            Single[] result = GC.AllocateUninitializedArray<Single>((Int32)length);
-            fixed (Single* dst = result)
+            try
             {
-                Buffer.MemoryCopy(outputData, dst, (UInt64)(length * sizeof(Single)), (UInt64)(length * sizeof(Single)));
+                Single* outputData = InferenceService.XaocSirckSessionInferenceGetOutputData(outputTensor, out Int64 length);
+                if (outputData == null || length <= 0)
+                    return [];
+
+                Single[] result = GC.AllocateUninitializedArray<Single>((Int32)length);
+                fixed (Single* dst = result)
+                {
+                    Buffer.MemoryCopy(outputData, dst, (UInt64)(length * sizeof(Single)), (UInt64)(length * sizeof(Single)));
+                }
+                return result;
             }
-            return result;
+            finally
+            {
+                InferenceService.XaocSirckSessionInferenceFreeTensor(_inference);
+            }
         }
     }
 

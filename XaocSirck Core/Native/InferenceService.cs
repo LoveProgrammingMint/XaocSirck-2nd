@@ -61,6 +61,9 @@ internal static unsafe partial class InferenceService
     [LibraryImport(DllName)]
     internal static partial IntPtr XaocSirckSessionInferenceInference(IntPtr handle, IntPtr session, IntPtr tensor);
 
+    [LibraryImport(DllName)]
+    internal static partial void XaocSirckSessionInferenceFreeTensor(IntPtr handle);
+
     [LibraryImport(DllName, StringMarshalling = StringMarshalling.Utf8)]
     internal static partial void XaocSirckSessionInferenceSetInput(IntPtr handle, String name);
 

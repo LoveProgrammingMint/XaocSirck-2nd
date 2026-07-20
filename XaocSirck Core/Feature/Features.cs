@@ -209,6 +209,7 @@ internal sealed unsafe class Features : IDisposable
         ZPM?.Dispose();
         ZPE?.Dispose();
         ZPS?.Dispose();
+        BSP.Dispose();
         GC.SuppressFinalize(this);
     }
 }

@@ -302,6 +302,21 @@ extern "C"
         }
     }
 
+    __declspec(dllexport) void XaocSirckSessionInferenceFreeTensor(void* handle)
+    {
+        if (handle == nullptr)
+        {
+            return;
+        }
+        try
+        {
+            static_cast<SessionInference*>(handle)->FreeTensor();
+        }
+        catch (...)
+        {
+        }
+    }
+
     __declspec(dllexport) void XaocSirckSessionInferenceSetInput(void* handle, const char* name)
     {
         if (handle == nullptr || name == nullptr)

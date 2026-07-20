@@ -59,6 +59,11 @@ Ort::Value* SessionInference::Inference(Ort::Session* session, Ort::Value* tenso
     return _outputTensor.get();
 }
 
+void SessionInference::FreeTensor()
+{
+    _outputTensor.reset();
+}
+
 void SessionInference::SetInput(const std::string& name)
 {
     _inputName = name;

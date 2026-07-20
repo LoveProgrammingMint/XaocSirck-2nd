@@ -14,6 +14,7 @@ public:
 
     Ort::Value* Packing(Single* data, const std::vector<Int64>& shape, const String& deviceName, Int32 deviceId);
     Ort::Value* Inference(Ort::Session* session, Ort::Value* tensor);
+    void FreeTensor();
     void SetInput(const std::string& name);
     void SetOutput(const std::string& name);
 
