@@ -62,6 +62,10 @@ __declspec(dllimport) int32_t __cdecl XsEngine_GetResultCount(intptr_t handle, i
 __declspec(dllimport) int32_t __cdecl XsEngine_GetResult(intptr_t handle, int32_t index, XsScanResult* result);
 __declspec(dllimport) void    __cdecl XsEngine_FreeString(void* ptr);
 
+__declspec(dllimport) int32_t __cdecl XsEngine_CheckForUpdate(intptr_t handle, const wchar_t** versionPtr);
+__declspec(dllimport) int32_t __cdecl XsEngine_DownloadUpdate(intptr_t handle, const wchar_t* outputPath);
+__declspec(dllimport) int32_t __cdecl XsEngine_ApplyUpdate(intptr_t handle, const wchar_t* serviceName);
+
 #ifdef __cplusplus
 }
 #endif

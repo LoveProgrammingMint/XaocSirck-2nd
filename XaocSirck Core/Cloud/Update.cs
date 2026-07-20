@@ -5,14 +5,32 @@ namespace XaocSirck_Core.Cloud;
 
 public sealed unsafe class UpdateClient : IDisposable
 {
-    private readonly String _packagePath;
-    private readonly String _extractPath;
-    private readonly String _updaterPath;
+    private String _packagePath;
+    private String _extractPath;
+    private String _updaterPath;
     private XsCommunication* _instance;
     private String _serverAddress = String.Empty;
     private Boolean _disposed;
 
     public Boolean IsConnected => _instance != null && _serverAddress.Length > 0;
+
+    public String PackagePath
+    {
+        get => _packagePath;
+        set => _packagePath = value;
+    }
+
+    public String ExtractPath
+    {
+        get => _extractPath;
+        set => _extractPath = value;
+    }
+
+    public String UpdaterPath
+    {
+        get => _updaterPath;
+        set => _updaterPath = value;
+    }
 
     public UpdateClient(String? packagePath = null, String? extractPath = null, String? updaterPath = null)
     {
@@ -71,11 +89,14 @@ public sealed unsafe class UpdateClient : IDisposable
         }
     }
 
-    public void Download()
+    public void Download() => Download(_packagePath);
+
+    public void Download(String outputPath)
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(UpdateClient));
         if (_instance == null)
             throw new InvalidOperationException("Not connected.");
+        ArgumentNullException.ThrowIfNull(outputPath);
 
         XsApiPack* pack = OnlineService.XsApi_UpdateDownloadPack();
         if (pack == null)
@@ -89,11 +110,11 @@ public sealed unsafe class UpdateClient : IDisposable
             if (buffer == null || length == 0)
                 throw new InvalidOperationException("Download returned empty data.");
 
-            String? packageDir = Path.GetDirectoryName(_packagePath);
+            String? packageDir = Path.GetDirectoryName(outputPath);
             if (!String.IsNullOrEmpty(packageDir))
                 Directory.CreateDirectory(packageDir);
 
-            using FileStream stream = new(_packagePath, FileMode.Create, FileAccess.Write, FileShare.None);
+            using FileStream stream = new(outputPath, FileMode.Create, FileAccess.Write, FileShare.None);
             stream.Write(new ReadOnlySpan<Byte>(buffer, (Int32)length));
         }
         finally

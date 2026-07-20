@@ -195,7 +195,7 @@ public static class EngineExport
         }
         try
         {
-            ScanResult[] results = engineHandle.Engine.Scan(scanPath, null, engineHandle.Engine.Settings.MaxFiles);
+            ScanResult[] results = engineHandle.Engine.Scan(scanPath, engineHandle.Engine.BuildMode(), engineHandle.Engine.Settings.MaxFiles);
             engineHandle.SetResults(results);
             return 0;
         }
@@ -291,6 +291,77 @@ public static class EngineExport
     {
         if (ptr != IntPtr.Zero)
             Marshal.FreeCoTaskMem(ptr);
+    }
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)], EntryPoint = "XsEngine_CheckForUpdate")]
+    public static unsafe Int32 XsEngine_CheckForUpdate(IntPtr handle, IntPtr* versionPtr)
+    {
+        SetError(String.Empty);
+        if (versionPtr == null)
+        {
+            SetError("Version pointer is null.");
+            return 1;
+        }
+        if (!_handles.TryGetValue(handle, out EngineHandle? engineHandle))
+        {
+            SetError("Invalid engine handle.");
+            return 2;
+        }
+        try
+        {
+            String? version = engineHandle.Engine.CheckForUpdate();
+            *versionPtr = version != null ? Marshal.StringToCoTaskMemUni(version) : IntPtr.Zero;
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            SetError($"Check for update failed: {ex.Message}");
+            return 3;
+        }
+    }
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)], EntryPoint = "XsEngine_DownloadUpdate")]
+    public static Int32 XsEngine_DownloadUpdate(IntPtr handle, IntPtr outputPath)
+    {
+        SetError(String.Empty);
+        if (!_handles.TryGetValue(handle, out EngineHandle? engineHandle))
+        {
+            SetError("Invalid engine handle.");
+            return 1;
+        }
+        String? path = Marshal.PtrToStringUni(outputPath);
+        try
+        {
+            engineHandle.Engine.DownloadUpdate(path);
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            SetError($"Download update failed: {ex.Message}");
+            return 2;
+        }
+    }
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)], EntryPoint = "XsEngine_ApplyUpdate")]
+    public static Int32 XsEngine_ApplyUpdate(IntPtr handle, IntPtr serviceName)
+    {
+        SetError(String.Empty);
+        if (!_handles.TryGetValue(handle, out EngineHandle? engineHandle))
+        {
+            SetError("Invalid engine handle.");
+            return 1;
+        }
+        String? name = Marshal.PtrToStringUni(serviceName);
+        try
+        {
+            engineHandle.Engine.ApplyUpdate(name);
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            SetError($"Apply update failed: {ex.Message}");
+            return 2;
+        }
     }
 
     private static EngineMode ParseModeFlags(UInt32 flags)

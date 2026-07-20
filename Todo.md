@@ -6,24 +6,13 @@ I tend to forget the author easily
 The author is a cat, so the updates will be a bit slower
 You can pet the cat before that
 
+Miscellaneous items:
+Train Bitremal & Zeroflows "Fill" (Asynchronous Waiting..)
+Make Charwolf Rules (Asynchronous Waiting..)
 
-Data cache (for like BrewTotal to cache features) (Finished)
-Train Bitremal & Zeroflows (Waiting..)
-Completed Charwolf (Finished)
-Complete the log system (Developing..)
-Complete the logic of the entire engine:
-    - Api ? (It might be a TCP local service /DLL import)
-    - Scan Queue (Developing..)
-    - Some Logic (Extraction, encapsulation, reasoning, and some other logics)
+Components：
 
-Let's stop here for now
-I hope this project can always remain in the active development stage
-If there's nothing much to update in the future, I will incorporate more complex features like dynamic sandboxes (which can take the author a long time to develop).
-This project will be linked with Boreas (the Boreas project is in the planning stage).
-This project will be continuously updated until it reaches the leading level in the industry
-After my graduation, I won't have time to continue developing this project. I will open source this project under the MIT license in the future and provide it to secondary developers in the entire community for updates
-However, this will still take about three years
-Hehe, I had a conflict with my best friend
-Quite sad
-But it seems that he doesn't care whether I'm there or not
-Sigh.
+Publish:
+Console Tool (Developing..)
+Local Service (Developing..)
+DLL Export (Developing..) 

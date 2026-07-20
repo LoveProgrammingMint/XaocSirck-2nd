@@ -11,6 +11,7 @@ public sealed class Engine : IDisposable
 {
     private readonly Settings _settings;
     private readonly CloudClient _cloud;
+    private readonly UpdateClient _update;
     private readonly BitremalInferenceService _bitremal;
     private readonly ZeroflowsInferenceService _zeroflows;
     private readonly CharwolfEngineService _charwolf;
@@ -22,6 +23,7 @@ public sealed class Engine : IDisposable
     {
         _settings = settings ?? App.Settings;
         _cloud = new CloudClient();
+        _update = new UpdateClient();
         _bitremal = new BitremalInferenceService(_settings.EnableGpu);
         _zeroflows = new ZeroflowsInferenceService(_settings.EnableGpu);
         _charwolf = new CharwolfEngineService();
@@ -29,6 +31,7 @@ public sealed class Engine : IDisposable
 
     public Settings Settings => _settings;
     public CloudClient Cloud => _cloud;
+    public UpdateClient Update => _update;
     public ITimer? Timer => _queue?.Timer;
     public Boolean IsInitialized => _initialized;
     public Boolean IsBitremalLoaded => _bitremal.IsLoaded;
@@ -64,6 +67,19 @@ public sealed class Engine : IDisposable
             catch (Exception ex)
             {
                 App.Logger.Error($"Cloud cache connection failed: {_settings.CloudServerAddress}", ex);
+            }
+        }
+
+        if (!String.IsNullOrEmpty(_settings.UpdateServerAddress))
+        {
+            try
+            {
+                _update.Connect(_settings.UpdateServerAddress);
+                App.Logger.Info($"Update client connected: {_settings.UpdateServerAddress}");
+            }
+            catch (Exception ex)
+            {
+                App.Logger.Error($"Update client connection failed: {_settings.UpdateServerAddress}", ex);
             }
         }
 
@@ -159,6 +175,65 @@ public sealed class Engine : IDisposable
         _queue?.Stop();
     }
 
+    public String? CheckForUpdate()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, nameof(Engine));
+        if (!_update.IsConnected)
+        {
+            App.Logger.Warning("Update client is not connected.");
+            return null;
+        }
+        try
+        {
+            String? version = _update.CheckVersion();
+            App.Logger.Info($"Update check result: {version ?? "no update"}");
+            return version;
+        }
+        catch (Exception ex)
+        {
+            App.Logger.Error("Check for update failed", ex);
+            throw;
+        }
+    }
+
+    public void DownloadUpdate(String? outputPath = null)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, nameof(Engine));
+        if (!_update.IsConnected)
+        {
+            App.Logger.Warning("Update client is not connected.");
+            return;
+        }
+        try
+        {
+            if (!String.IsNullOrEmpty(outputPath))
+                _update.Download(outputPath);
+            else
+                _update.Download();
+            App.Logger.Info($"Update downloaded to {_update.PackagePath}");
+        }
+        catch (Exception ex)
+        {
+            App.Logger.Error("Download update failed", ex);
+            throw;
+        }
+    }
+
+    public void ApplyUpdate(String? serviceName = null)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, nameof(Engine));
+        try
+        {
+            _update.Apply(serviceName);
+            App.Logger.Info($"Update applied, service={serviceName ?? "none"}");
+        }
+        catch (Exception ex)
+        {
+            App.Logger.Error("Apply update failed", ex);
+            throw;
+        }
+    }
+
     public void Dispose()
     {
         if (!_disposed)
@@ -166,6 +241,7 @@ public sealed class Engine : IDisposable
             Stop();
             _queue?.Dispose();
             _cloud.Dispose();
+            _update.Dispose();
             _bitremal.Dispose();
             _zeroflows.Dispose();
             _charwolf.Dispose();
@@ -175,7 +251,7 @@ public sealed class Engine : IDisposable
         }
     }
 
-    private EngineMode BuildMode()
+    public EngineMode BuildMode()
     {
         return new EngineMode
         {
