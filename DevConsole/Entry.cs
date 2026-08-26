@@ -51,6 +51,9 @@ internal class Entry
             TestSettings();
             WriteLine();
 
+            if (String.IsNullOrEmpty(serverAddress))
+                serverAddress = App.Settings.Config.CloudServerAddress;
+
             TestCloud(serverAddress);
             WriteLine();
 
@@ -69,7 +72,13 @@ internal class Entry
             TestEngine(scanPath, maxFiles);
             WriteLine();
 
+            TestNativeEngine(scanPath);
+            WriteLine();
+
             TestCharwolf("C:\\Windows\\System32\\notepad.exe");
+            WriteLine();
+
+            TestOverThink("C:\\Windows\\System32\\notepad.exe");
             WriteLine();
 
             WriteLine("DevConsole integration test completed successfully");
@@ -146,6 +155,8 @@ internal class Entry
         WriteLine($"[Settings] ParticipateInCoConstruction: {App.Settings.Config.ParticipateInCoConstruction}");
         WriteLine($"[Settings] ModelsDirectory: {App.Settings.Config.ModelsDirectory}");
         WriteLine($"[Settings] EnableGpu: {App.Settings.Config.EnableGpu}");
+        WriteLine($"[Settings] CloudServerAddress: {App.Settings.Config.CloudServerAddress}");
+        WriteLine($"[Settings] UpdateServerAddress: {App.Settings.Config.UpdateServerAddress}");
         WriteLine($"[Settings] FilterByExtension: {App.Settings.Config.FilterByExtension}");
         WriteLine($"[Settings] TargetExtensions: [{String.Join(", ", App.Settings.Config.TargetExtensions)}]");
         WriteLine($"[Settings] BitremalMode: {App.Settings.Config.BitremalMode}");
@@ -563,5 +574,85 @@ internal class Entry
             foreach (Charwolf.XSRule.CharwolfMatch match in result.Matches.Take(5))
                 WriteLine($"[Charwolf]     string#{match.StringId}");
         }
+    }
+
+    static void TestNativeEngine(String scanPath)
+    {
+        String dllPath = Path.Combine(AppContext.BaseDirectory, "XaocSirck Export.dll");
+        if (!File.Exists(dllPath))
+        {
+            WriteLine($"[NativeEngine] Export DLL not found: {dllPath}");
+            return;
+        }
+
+        WriteLine($"[NativeEngine] Loading {dllPath}");
+        using NativeEngine engine = new(dllPath);
+        engine.Create();
+        WriteLine($"[NativeEngine] Handle created: {engine.Handle}");
+
+        String configPath = Path.Combine(AppContext.BaseDirectory, "dev_console_config.json");
+        if (File.Exists(configPath))
+        {
+            engine.LoadSettings(configPath);
+            WriteLine($"[NativeEngine] Settings loaded from {configPath}");
+        }
+
+        engine.Initialize();
+        WriteLine("[NativeEngine] Initialized");
+
+        if (Directory.Exists(scanPath))
+        {
+            engine.Scan(scanPath);
+            Int32 count = engine.GetResultCount();
+            WriteLine($"[NativeEngine] Scanned {count} results");
+            foreach (Int32 i in Enumerable.Range(0, Math.Min(count, 5)))
+            {
+                NativeScanResult r = engine.GetResult(i);
+                WriteLine($"[NativeEngine]   {r.FilePath} -> malicious={r.IsMalicious}, bitremal={r.BitremalScore}, zeroflows={r.ZeroflowsScore}");
+            }
+        }
+
+        try
+        {
+            String? version = engine.CheckForUpdate();
+            WriteLine($"[NativeEngine] CheckForUpdate: {version ?? "no update"}");
+        }
+        catch (Exception ex)
+        {
+            WriteLine($"[NativeEngine] CheckForUpdate failed (expected if no server): {ex.Message}");
+        }
+
+        try
+        {
+            String updatePath = Path.Combine(AppContext.BaseDirectory, "native_update_pkg.izxs");
+            engine.DownloadUpdate(updatePath);
+            WriteLine($"[NativeEngine] Downloaded update to {updatePath}");
+            engine.ApplyUpdate();
+            WriteLine("[NativeEngine] ApplyUpdate started");
+        }
+        catch (Exception ex)
+        {
+            WriteLine($"[NativeEngine] Update flow failed (expected if no server): {ex.Message}");
+        }
+    }
+
+    static void TestOverThink(String filePath)
+    {
+        WriteLine($"[OverThink] Generating ICeZeRoX feature bins for {filePath}");
+        if (!File.Exists(filePath))
+        {
+            WriteLine($"[OverThink] File not found: {filePath}");
+            return;
+        }
+
+        String outputDir = Path.Combine(AppContext.BaseDirectory, "OverThink_ICEZEROX_Out");
+        Stopwatch sw = Stopwatch.StartNew();
+        IReadOnlyList<OverThink_ICeZeRoX.Feature.Entry.GenerationResult> results =
+            OverThink_ICeZeRoX.Feature.Entry.GenerateAll(filePath, outputDir);
+        sw.Stop();
+
+        WriteLine($"[OverThink] Generated {results.Count} bins in {sw.Elapsed.TotalMilliseconds:F3} ms -> {outputDir}");
+        foreach (OverThink_ICeZeRoX.Feature.Entry.GenerationResult r in results)
+            WriteLine($"[OverThink]   {r.Tag,-5} {r.Bytes,8} bytes  {Path.GetFileName(r.Path)}");
     }
 }

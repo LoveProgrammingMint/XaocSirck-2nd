@@ -4,11 +4,13 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="Charwolf/Charwolf.csproj" Id="c5b205f3-2881-48d0-95f9-55dd33fae514" />
-  <Project Path="LogSystem/LogSystem.csproj" />
-  <Project Path="Updater/Updater.csproj" />
-  <Project Path="XaocSirck Core/XaocSirck Core.csproj" />
-  <Project Path="XaocSirck Export/XaocSirck Export.csproj" />
-  <Project Path="XaocSirck Inference Service/XaocSirck Inference Service.vcxproj" Id="104da7f4-8c97-4548-adc5-3b0f48c683d4" />
-  <Project Path="XaocSirck Online Service/XaocSirck Online Service.vcxproj" Id="0b2420e1-c946-4f8a-a933-fa40a6012c76" />
+  <Project Path="D:/IceZero/Projects/XaocSirck 2nd/Charwolf/Charwolf.csproj" Id="c5b205f3-2881-48d0-95f9-55dd33fae514" />
+  <Project Path="D:/IceZero/Projects/XaocSirck 2nd/FeatureExtractor/FeatureExtractor.csproj" />
+  <Project Path="D:/IceZero/Projects/XaocSirck 2nd/LogSystem/LogSystem.csproj" />
+  <Project Path="D:/IceZero/Projects/XaocSirck 2nd/OverThink ICeZeRoX/OverThink ICeZeRoX.csproj" Id="42dfd6ce-1d07-4568-8303-beb0b3f8a5d2" />
+  <Project Path="D:/IceZero/Projects/XaocSirck 2nd/Updater/Updater.csproj" />
+  <Project Path="D:/IceZero/Projects/XaocSirck 2nd/XaocSirck Core/XaocSirck Core.csproj" />
+  <Project Path="D:/IceZero/Projects/XaocSirck 2nd/XaocSirck Export/XaocSirck Export.csproj" />
+  <Project Path="D:/IceZero/Projects/XaocSirck 2nd/XaocSirck Inference Service/XaocSirck Inference Service.vcxproj" Id="104da7f4-8c97-4548-adc5-3b0f48c683d4" />
+  <Project Path="D:/IceZero/Projects/XaocSirck 2nd/XaocSirck Online Service/XaocSirck Online Service.vcxproj" Id="0b2420e1-c946-4f8a-a933-fa40a6012c76" />
 </Solution>
